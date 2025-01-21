@@ -136,28 +136,41 @@ export class UsuariosService {
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<{ message: string; usuario: Usuario }> {
     const usuario = await this.findOne(id);
+  
+    const existe = await this.usuariosRepository.findOne({
+      where: { usuario: updateUsuarioDto.usuario?.trim() },
+    });
 
-    if (updateUsuarioDto.clave) {
-      usuario.clave = updateUsuarioDto.clave;
+    if (existe && existe.id !== id) {
+      throw new ConflictException('El usuario ya existe');
     }
 
-    if (updateUsuarioDto.rolId) {
-      const rol = await this.rolesRepository.findOneBy({ id: updateUsuarioDto.rolId });
+    const normalizedUsuarioDto = {
+      ...updateUsuarioDto,
+      usuario: updateUsuarioDto.usuario?.trim(),
+      nombre: updateUsuarioDto.nombre?.trim(),
+      apellido: updateUsuarioDto.apellido?.trim(),
+      correo: updateUsuarioDto.correo?.trim() || null,
+    };
+  
+    if (normalizedUsuarioDto.rolId) {
+      const rol = await this.rolesRepository.findOneBy({ id: normalizedUsuarioDto.rolId });
       if (!rol) throw new NotFoundException('El rol especificado no existe');
       usuario.rol = rol;
     }
-
-    if (updateUsuarioDto.sucursalId) {
-      const sucursal = await this.sucursalesRepository.findOneBy({ id: updateUsuarioDto.sucursalId });
+  
+    if (normalizedUsuarioDto.sucursalId) {
+      const sucursal = await this.sucursalesRepository.findOneBy({ id: normalizedUsuarioDto.sucursalId });
       if (!sucursal) throw new NotFoundException('La sucursal especificada no existe');
       usuario.sucursal = sucursal;
     }
-
-    Object.assign(usuario, updateUsuarioDto);
+  
+    Object.assign(usuario, normalizedUsuarioDto);
     const updatedUsuario = await this.usuariosRepository.save(usuario);
+  
     return { message: 'Usuario actualizado correctamente', usuario: updatedUsuario };
   }
-
+  
   async remove(id: number): Promise<{ message: string }> {
     const usuario = await this.findOne(id);
     await this.usuariosRepository.remove(usuario);
