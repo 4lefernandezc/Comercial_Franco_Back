@@ -129,17 +129,43 @@ export class ClientesService {
     return cliente;
   }
 
-  async update( id: number, updateClienteDto: UpdateClienteDto ): Promise<{ message: string; cliente: Cliente }> {
+  async update(id: number, updateClienteDto: UpdateClienteDto): Promise<{ message: string; cliente: Cliente }> {
     const cliente = await this.findOne(id);
-    const clienteUpdate = Object.assign(cliente, updateClienteDto);
+  
+    if (updateClienteDto.documento) {
+      const existingCliente = await this.clientesRepository.findOneBy({
+        documento: updateClienteDto.documento.trim(),
+      });
+  
+      if (existingCliente && existingCliente.id !== id) {
+        throw new BadRequestException(`El cliente con el documento proporcionado ya existe`);
+      }
+    }
+  
+    const linkWhatsApp = updateClienteDto.telefono
+      ? `https://wa.me/${updateClienteDto.telefono.trim()}`
+      : cliente.linkWhatsapp;
+  
+    const clienteUpdate = Object.assign(cliente, {
+      ...updateClienteDto,
+      documento: updateClienteDto.documento?.trim(),
+      tipoDocumento: updateClienteDto.tipoDocumento?.trim(),
+      nombre: updateClienteDto.nombre?.trim(),
+      apellido: updateClienteDto.apellido?.trim(),
+      direccion: updateClienteDto.direccion?.trim(),
+      telefono: updateClienteDto.telefono?.trim(),
+      correo: updateClienteDto.correo?.trim(),
+      linkWhatsapp: linkWhatsApp,
+    });
+  
     const updatedCliente = await this.clientesRepository.save(clienteUpdate);
-
+  
     return {
       message: 'El cliente ha sido actualizado exitosamente',
       cliente: updatedCliente,
     };
   }
-
+  
   async remove(id: number): Promise<{ message: string; cliente: Cliente }> {
     const cliente = await this.findOne(id);
     await this.clientesRepository.remove(cliente);
