@@ -61,25 +61,25 @@ export class SucursalesService {
     ]);
 
     if (nombre) {
-      query.andWhere('sucursales.nombre LIKE :nombre', { 
+      query.andWhere('sucursales.nombre ILIKE :nombre', { 
         nombre: `%${nombre}%`, 
       });
     }
 
     if (telefono) {
-      query.andWhere('sucursales.telefono LIKE :telefono', { 
+      query.andWhere('sucursales.telefono ILIKE :telefono', { 
         telefono: `%${telefono}%`, 
       });
     }
 
     if (direccion) {
-      query.andWhere('sucursales.direccion LIKE :direccion', { 
+      query.andWhere('sucursales.direccion ILIKE :direccion', { 
         direccion: `%${direccion}%`, 
       });
     }
 
     if (correo) {
-      query.andWhere('sucursales.correo LIKE :correo', { 
+      query.andWhere('sucursales.correo ILIKE :correo', { 
         correo: `%${correo}%`, 
       });
     }
