@@ -122,14 +122,51 @@ export class SucursalesService {
     updateSucursalDto: UpdateSucursalDto,
   ): Promise<{ message: string; sucursal: Sucursal }> {
     const sucursal = await this.findOne(id);
-    const sucursalUpdate = Object.assign(sucursal, updateSucursalDto);
-    const updatedSucursal =
-      await this.sucursalesRepository.save(sucursalUpdate);
+  
+    const normalizedDto = {
+      ...updateSucursalDto,
+      nombre: updateSucursalDto.nombre?.trim(),
+      direccion: updateSucursalDto.direccion?.trim(),
+      correo: updateSucursalDto.correo?.trim() || null,
+    };
+  
+    if (normalizedDto.nombre) {
+      const existingSucursalByName = await this.sucursalesRepository.findOne({
+        where: {
+          nombre: normalizedDto.nombre,
+        },
+      });
+  
+      if (existingSucursalByName && existingSucursalByName.id !== id) {
+        throw new BadRequestException(
+          'La sucursal con el nombre proporcionado ya existe',
+        );
+      }
+    }
+  
+    if (normalizedDto.direccion) {
+      const existingSucursalByDireccion =
+        await this.sucursalesRepository.findOne({
+          where: {
+            direccion: normalizedDto.direccion,
+          },
+        });
+  
+      if (existingSucursalByDireccion && existingSucursalByDireccion.id !== id) {
+        throw new BadRequestException(
+          'La sucursal con la dirección proporcionada ya existe',
+        );
+      }
+    }
+  
+    const sucursalUpdate = Object.assign(sucursal, normalizedDto);
+    const updatedSucursal = await this.sucursalesRepository.save(sucursalUpdate);
+  
     return {
       message: 'La sucursal ha sido actualizada exitosamente',
       sucursal: updatedSucursal,
     };
-  }
+  }  
 
   async remove(id: number): Promise<{ message: string; sucursal?: Sucursal }> {
     const sucursal = await this.findOne(id);
