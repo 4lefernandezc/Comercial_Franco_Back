@@ -83,17 +83,33 @@ export class CategoriasService {
     return categoria;
   }
 
-  async update( id: number, updateCategoriaDto: UpdateCategoriaDto ): Promise<{ message: string; categoria: Categoria }> {
+  async update(id: number, updateCategoriaDto: UpdateCategoriaDto): Promise<{ message: string; categoria: Categoria }> {
     const categoria = await this.findOne(id);
-    const categoriaUpdate = Object.assign(categoria, updateCategoriaDto);
-    const updatedCategoria =
-      await this.categoriasRepository.save(categoriaUpdate);
+  
+    if (updateCategoriaDto.nombre) {
+      const existingCategoria = await this.categoriasRepository.findOneBy({
+        nombre: updateCategoriaDto.nombre.trim(),
+      });
+  
+      if (existingCategoria && existingCategoria.id !== id) {
+        throw new BadRequestException(`La categoria con el nombre proporcionado ya existe`);
+      }
+    }
+  
+    const categoriaUpdate = Object.assign(categoria, {
+      ...updateCategoriaDto,
+      nombre: updateCategoriaDto.nombre?.trim(),
+      descripcion: updateCategoriaDto.descripcion?.trim(),
+    });
+  
+    const updatedCategoria = await this.categoriasRepository.save(categoriaUpdate);
+  
     return {
       message: 'La categoria ha sido actualizada exitosamente',
       categoria: updatedCategoria,
     };
   }
-
+  
   async remove(id: number): Promise<{ message: string; categoria: Categoria }> {
     const categoria = await this.findOne(id);
     await this.categoriasRepository.remove(categoria);
