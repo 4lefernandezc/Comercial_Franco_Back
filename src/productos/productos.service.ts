@@ -179,17 +179,44 @@ export class ProductosService {
     updateProductoDto: UpdateProductoDto,
   ): Promise<{ message: string; producto: Producto }> {
     const producto = await this.findOne(id);
-
+  
+    if (updateProductoDto.codigo) {
+      const codigoExiste = await this.productosRepository.findOneBy({
+        codigo: updateProductoDto.codigo.trim(),
+      });
+  
+      if (codigoExiste && codigoExiste.id !== id) {
+        throw new ConflictException('El producto con ese código ya existe');
+      }
+    }
+  
+    if (updateProductoDto.nombre) {
+      const nombreExiste = await this.productosRepository.findOneBy({
+        nombre: updateProductoDto.nombre.trim(),
+      });
+  
+      if (nombreExiste && nombreExiste.id !== id) {
+        throw new ConflictException('El producto con ese nombre ya existe');
+      }
+    }
+  
     if (updateProductoDto.idCategoria) {
       producto.categoria = { id: updateProductoDto.idCategoria } as Categoria;
     }
-
+  
     if (updateProductoDto.idProveedor) {
       producto.proveedor = { id: updateProductoDto.idProveedor } as Proveedor;
     }
-
-    const updatedProducto = Object.assign(producto, updateProductoDto);
+  
+    const updatedProducto = Object.assign(producto, {
+      ...updateProductoDto,
+      codigo: updateProductoDto.codigo?.trim(),
+      nombre: updateProductoDto.nombre?.trim(),
+      descripcion: updateProductoDto.descripcion?.trim(),
+    });
+  
     await this.productosRepository.save(updatedProducto);
+  
     return {
       message: 'Producto actualizado exitosamente',
       producto: updatedProducto,
