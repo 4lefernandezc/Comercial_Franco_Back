@@ -120,16 +120,52 @@ export class ProveedoresService {
     return proveedor;
   }
 
-  async update(id: number, updateProveedorDto: UpdateProveedorDto): Promise<{ message: string; proveedor: Proveedor }> {
+  async update(
+    id: number,
+    updateProveedorDto: UpdateProveedorDto,
+  ): Promise<{ message: string; proveedor: Proveedor }> {
     const proveedor = await this.findOne(id);
-    const proveedorUpdate = Object.assign(proveedor, updateProveedorDto);
+  
+    if (updateProveedorDto.nombre) {
+      const existingProveedorByName = await this.proveedoresRepository.findOneBy({
+        nombre: updateProveedorDto.nombre.trim(),
+      });
+  
+      if (existingProveedorByName && existingProveedorByName.id !== id) {
+        throw new BadRequestException(`El proveedor con el nombre proporcionado ya existe`);
+      }
+    }
+  
+    if (updateProveedorDto.nit) {
+      const existingProveedorByNit = await this.proveedoresRepository.findOneBy({
+        nit: updateProveedorDto.nit.trim(),
+      });
+  
+      if (existingProveedorByNit && existingProveedorByNit.id !== id) {
+        throw new BadRequestException(`El proveedor con el NIT proporcionado ya existe`);
+      }
+    }
+  
+    if (updateProveedorDto.telefono) {
+      proveedor.linkWhatsapp = `https://wa.me/${updateProveedorDto.telefono.trim()}`;
+    }
+  
+    const proveedorUpdate = Object.assign(proveedor, {
+      ...updateProveedorDto,
+      nombre: updateProveedorDto.nombre?.trim(),
+      nit: updateProveedorDto.nit?.trim(),
+      direccion: updateProveedorDto.direccion?.trim(),
+      correo: updateProveedorDto.correo?.trim(),
+    });
+  
     const updatedProveedor = await this.proveedoresRepository.save(proveedorUpdate);
+  
     return {
       message: 'El proveedor ha sido actualizado exitosamente',
       proveedor: updatedProveedor,
     };
   }
-
+  
   async remove(id: number): Promise<{ message: string; proveedor: Proveedor }> {
     const proveedor = await this.findOne(id);
     await this.proveedoresRepository.remove(proveedor);
