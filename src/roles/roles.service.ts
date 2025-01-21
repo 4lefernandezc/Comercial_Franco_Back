@@ -78,16 +78,45 @@ export class RolesService {
     return rol;
   }
 
-  async update( id: number, updateRolDto: UpdateRolDto ): Promise<{ message: string; rol: Rol }> {
+  async update(
+    id: number,
+    updateRolDto: UpdateRolDto,
+  ): Promise<{ message: string; rol: Rol }> {
     const rol = await this.findOne(id);
-    const rolUpdate = Object.assign(rol, updateRolDto);
+  
+    let updatedData = { ...updateRolDto };
+
+    if (updateRolDto.nombre) {
+      const existingRol = await this.rolesRepository.findOne({
+        where: {
+          nombre: updateRolDto.nombre.toLowerCase().trim(),
+        },
+      });
+  
+      if (existingRol && existingRol.id !== id) {
+        throw new BadRequestException('Ya existe un rol con ese nombre');
+      }
+  
+      updatedData = {
+        ...updatedData,
+        nombre: updateRolDto.nombre.toLowerCase().trim(),
+      };
+    }
+  
+    updatedData = {
+      ...updatedData,
+      descripcion: updateRolDto.descripcion?.trim() || null,
+    };
+  
+    const rolUpdate = Object.assign(rol, updatedData);
     const updatedRol = await this.rolesRepository.save(rolUpdate);
+  
     return {
       message: 'El rol ha sido actualizado exitosamente',
       rol: updatedRol,
     };
   }
-
+  
   async remove(id: number): Promise<{ message: string; rol: Rol }> {
     const rol = await this.findOne(id);
     await this.rolesRepository.remove(rol);
