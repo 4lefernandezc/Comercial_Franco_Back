@@ -23,4 +23,14 @@ export class AuthController {
     const userId = req.user.id;
     return this.authService.changePassword(userId, changePasswordDto);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Req() req): Promise<any> {
+    const token = req.headers.authorization?.split(' ')[1];
+    await this.authService.logout(token);
+    return { message: 'Logout exitoso' };
+  }
 }

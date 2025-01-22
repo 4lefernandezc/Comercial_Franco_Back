@@ -9,6 +9,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
+  private tokenBlacklist: Set<string> = new Set();
+  
   constructor(
     private usuarioService: UsuariosService,
     private jwtService: JwtService,
@@ -41,6 +43,16 @@ export class AuthService {
       throw new UnauthorizedException(`Usuario inválido: ${payload.sub}`);
     }
     return usuario;
+  }
+
+  async logout(token: string): Promise<void> {
+    if (token) {
+      this.tokenBlacklist.add(token);
+    }
+  }
+
+  isTokenBlacklisted(token: string): boolean {
+    return this.tokenBlacklist.has(token);
   }
 
   async changePassword(userId: number, { oldPassword, newPassword }: ChangePasswordDto) {
