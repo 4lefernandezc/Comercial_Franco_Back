@@ -54,7 +54,7 @@ export class UsuariosService {
   }
 
   async findAll(q: QueryUsuarioDto) {
-    const { page, limit, usuario, nombre, apellido, activo, sidx, sord } = q;
+    const { page, limit, rolId, sucursalId, usuario, nombre, apellido, activo, sidx, sord } = q;
     const query = this.usuariosRepository.createQueryBuilder('usuarios').select([
       'usuarios.id',
       'usuarios.usuario',
@@ -68,8 +68,8 @@ export class UsuariosService {
       'usuarios.fechaCreacion',
       'usuarios.fechaModificacion',
     ])
-    .innerJoin('usuarios.rol', 'rol')
-    .innerJoin('usuarios.sucursal', 'sucursal');
+    .leftJoinAndSelect('usuarios.rol', 'rol')
+    .leftJoinAndSelect('usuarios.sucursal', 'sucursal');
 
     if (usuario) {
       query.andWhere('usuarios.usuario ILIKE :usuario', {
@@ -95,6 +95,18 @@ export class UsuariosService {
       });
     }
 
+    if (rolId) {
+      query.andWhere('usuarios.rolId = :rolId', {
+        rolId,
+      });
+    }
+
+    if (sucursalId) {
+      query.andWhere('usuarios.sucursalId = :sucursalId', {
+        sucursalId,
+      });
+    }
+
     if (sidx) {
       query.orderBy(`usuarios.${sidx}`, sord);
     }
@@ -110,14 +122,6 @@ export class UsuariosService {
       page,
       pageCount: Math.ceil(total / limit),
     };
-  }
-
-  async findByRol(idRol: number): Promise<Usuario[]> {
-    return this.usuariosRepository.find({ where: { rolId: idRol } });
-  }
-
-  async findBySucursal(idSucursal: number): Promise<Usuario[]> {
-    return this.usuariosRepository.find({ where: { sucursalId: idSucursal } });
   }
 
   async findOne(id: number): Promise<Usuario> {
@@ -137,12 +141,14 @@ export class UsuariosService {
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<{ message: string; usuario: Usuario }> {
     const usuario = await this.findOne(id);
   
-    const existe = await this.usuariosRepository.findOne({
-      where: { usuario: updateUsuarioDto.usuario?.trim() },
-    });
+    if (updateUsuarioDto.usuario) {
+      const existe = await this.usuariosRepository.findOne({
+        where: { usuario: updateUsuarioDto.usuario.trim() },
+      });
 
-    if (existe && existe.id !== id) {
-      throw new ConflictException('El usuario ya existe');
+      if (existe && existe.id !== id) {
+        throw new ConflictException('El usuario ya existe');
+      }
     }
 
     const normalizedUsuarioDto = {

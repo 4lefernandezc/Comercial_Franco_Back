@@ -24,18 +24,6 @@ export class ProductosController {
     return this.productosService.findAll(query);
   }
 
-  @Get('categoria/:idCategoria')
-  async getProductosByCategoria(
-    @Param('idCategoria', ParseIntPipe) idCategoria: number ): Promise<Producto[]> {
-    return this.productosService.findByCategoria(idCategoria);
-  }
-
-  @Get('proveedor/:idProveedor')
-  async getProductosByProveedor(
-    @Param('idProveedor', ParseIntPipe) idProveedor: number ): Promise<Producto[]> {
-    return this.productosService.findByProveedor(idProveedor);
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productosService.findOne(+id);

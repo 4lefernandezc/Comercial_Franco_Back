@@ -145,22 +145,6 @@ export class ProductosService {
     };
   }
 
-  async findByCategoria(idCategoria: number): Promise<Producto[]> {
-    return this.productosRepository
-      .createQueryBuilder('productos')
-      .innerJoin('productos.categoria', 'categoria')
-      .where('categoria.id = :idCategoria', { idCategoria })
-      .getMany();
-  }
-
-  async findByProveedor(idProveedor: number): Promise<Producto[]> {
-    return this.productosRepository
-      .createQueryBuilder('productos')
-      .innerJoin('productos.proveedor', 'proveedor')
-      .where('proveedor.id = :idProveedor', { idProveedor })
-      .getMany();
-  }
-
   async findOne(id: number): Promise<Producto> {
     const producto = await this.productosRepository.findOne({
       where: { id },

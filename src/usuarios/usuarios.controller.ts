@@ -33,21 +33,6 @@ export class UsuariosController {
     return this.usuariosService.findAll(query);
   }
 
-  @Get('rol/:idRol')
-  async getUsuariosByRol(
-    @Param('idRol') idRol: number,
-  ) {
-    return this.usuariosService.findByRol(idRol);
-  }
-
-  @Get('sucursal/:idSucursal')
-  async getUsuariosBySucursal(
-    @Param('idSucursal') idSucursal: number,
-  ) {
-    return this.usuariosService.findBySucursal(idSucursal);
-  }
-
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usuariosService.findOne(+id);
