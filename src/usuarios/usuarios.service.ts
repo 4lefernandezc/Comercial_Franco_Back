@@ -25,7 +25,7 @@ export class UsuariosService {
   ) {}
 
   async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
-    const { usuario, nombre, apellido, correo, activo, rolId, sucursalId } = createUsuarioDto;
+    const { usuario, nombre, apellido, telefono, correo, activo, rolId, sucursalId } = createUsuarioDto;
 
     const existe = await this.usuariosRepository.findOneBy({
       usuario: usuario.trim(),
@@ -43,6 +43,7 @@ export class UsuariosService {
       nombre: nombre.trim(),
       apellido: apellido.trim(),
       correo: correo?.trim() || null,
+      telefono: telefono?.trim() || null,
       activo,
       clave: createUsuarioDto.clave,
       rolId,
@@ -54,13 +55,14 @@ export class UsuariosService {
   }
 
   async findAll(q: QueryUsuarioDto) {
-    const { page, limit, rolId, sucursalId, usuario, nombre, apellido, activo, sidx, sord } = q;
+    const { page, limit, rolId, sucursalId, usuario, nombre, apellido, telefono, correo, activo, sidx, sord } = q;
     const query = this.usuariosRepository.createQueryBuilder('usuarios').select([
       'usuarios.id',
       'usuarios.usuario',
       'usuarios.nombre',
       'usuarios.apellido',
       'usuarios.correo',
+      'usuarios.telefono',
       'usuarios.activo',
       'usuarios.ultimoLogin',
       'usuarios.rolId',
@@ -86,6 +88,18 @@ export class UsuariosService {
     if (apellido) {
       query.andWhere('usuarios.apellido ILIKE :apellido', {
         apellido: `%${apellido}%`,
+      });
+    }
+
+    if (correo) {
+      query.andWhere('usuarios.correo ILIKE :correo', {
+        correo: `%${correo}%`,
+      });
+    }
+
+    if (telefono) {
+      query.andWhere('usuarios.telefono ILIKE :telefono', {
+        telefono: `%${telefono}%`,
       });
     }
 
@@ -127,7 +141,7 @@ export class UsuariosService {
   async findOne(id: number): Promise<Usuario> {
     const usuario = await this.usuariosRepository.findOne({
       where: { id },
-      select: ['id', 'usuario', 'nombre', 'apellido', 'correo', 'clave', 'activo', 'ultimoLogin', 'rolId', 'sucursalId'],
+      select: ['id', 'usuario', 'nombre', 'apellido', 'correo', 'telefono', 'clave', 'activo', 'ultimoLogin', 'rolId', 'sucursalId'],
       relations: ['rol', 'sucursal']
     });
 
@@ -157,6 +171,7 @@ export class UsuariosService {
       nombre: updateUsuarioDto.nombre?.trim(),
       apellido: updateUsuarioDto.apellido?.trim(),
       correo: updateUsuarioDto.correo?.trim() || null,
+      telefono: updateUsuarioDto.telefono?.trim() || null,
     };
   
     if (normalizedUsuarioDto.rolId) {

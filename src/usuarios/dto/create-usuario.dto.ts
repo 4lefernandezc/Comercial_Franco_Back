@@ -46,6 +46,14 @@ export class CreateUsuarioDto {
   readonly correo?: string;
 
   @ApiProperty()
+  @IsOptional()
+  @IsString({ message: 'El campo teléfono debe ser de tipo cadena' })
+  @MaxLength(20, {
+    message: 'El campo teléfono no debe ser mayor a 20 caracteres',
+  })
+  readonly telefono?: string;
+
+  @ApiProperty()
   @IsNotEmpty({ message: 'El campo clave es obligatorio' })
   @IsString({ message: 'El campo clave debe ser tipo cadena' })
   @MaxLength(255, {

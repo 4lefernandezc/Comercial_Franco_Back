@@ -34,6 +34,9 @@ export class Usuario {
   @Column('varchar', { length: 255, nullable: true })
   correo?: string;
 
+  @Column('varchar', { length: 20, nullable: true })
+  telefono?: string;
+
   @Column('varchar', { length: 255, select: false })
   clave: string;
 

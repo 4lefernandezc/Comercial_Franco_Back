@@ -19,6 +19,16 @@ export class QueryUsuarioDto extends GetPaginationSortParamsDto {
   @IsString()
   readonly apellido?: string;
 
+  @ApiPropertyOptional({ example: 'pepito@gmail.com' })
+  @IsOptional()
+  @IsString()
+  readonly correo?: string;
+
+  @ApiPropertyOptional({ example: '7456288' })
+  @IsOptional()
+  @IsString()
+  readonly telefono?: string;
+
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
   readonly rolId?: number;
