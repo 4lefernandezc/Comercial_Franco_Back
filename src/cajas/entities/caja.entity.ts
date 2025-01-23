@@ -1,3 +1,7 @@
+import { Usuario } from '../../usuarios/entities/usuario.entity';
+import { Sucursal } from '../../sucursales/entities/sucursal.entity';
+import { Venta } from '../../ventas/entities/venta.entity';
+import { Compra } from 'src/compras/entities/compra.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,10 +11,6 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { Sucursal } from '../../sucursales/entities/sucursal.entity';
-import { Venta } from '../../ventas/entities/venta.entity';
-import { Compra } from 'src/compras/entities/compra.entity';
 
 @Entity('cajas')
 export class Caja {

@@ -1,3 +1,5 @@
+import { Producto } from '../../productos/entities/producto.entity';
+import { Venta } from './venta.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -5,8 +7,6 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { Venta } from './venta.entity';
-import { Producto } from '../../productos/entities/producto.entity';
 
 @Entity('detalle_ventas')
 export class DetalleVenta {

@@ -1,3 +1,5 @@
+import { Producto } from 'src/productos/entities/producto.entity';
+import { Sucursal } from 'src/sucursales/entities/sucursal.entity';
 import {
   Column,
   CreateDateColumn,
@@ -7,8 +9,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Producto } from 'src/productos/entities/producto.entity';
-import { Sucursal } from 'src/sucursales/entities/sucursal.entity';
 
 @Entity('inventarios_sucursales')
 export class InventarioSucursal {

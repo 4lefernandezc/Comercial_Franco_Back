@@ -1,3 +1,8 @@
+import { Cliente } from '../../clientes/entities/cliente.entity';
+import { Usuario } from '../../usuarios/entities/usuario.entity';
+import { Sucursal } from '../../sucursales/entities/sucursal.entity';
+import { DetalleVenta } from './detalle_venta.entity';
+import { Caja } from 'src/cajas/entities/caja.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,11 +12,6 @@ import {
   OneToMany,
   UpdateDateColumn,
 } from 'typeorm';
-import { Cliente } from '../../clientes/entities/cliente.entity';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { Sucursal } from '../../sucursales/entities/sucursal.entity';
-import { DetalleVenta } from './detalle_venta.entity';
-import { Caja } from 'src/cajas/entities/caja.entity';
 
 @Entity('ventas')
 export class Venta {

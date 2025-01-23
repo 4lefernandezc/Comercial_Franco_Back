@@ -1,3 +1,10 @@
+import { MovimientoInventario } from 'src/movimientos_inventarios/entities/movimientos_inventario.entity';
+import { Rol } from 'src/roles/entities/rol.entity';
+import { Sucursal } from 'src/sucursales/entities/sucursal.entity';
+import { Venta } from 'src/ventas/entities/venta.entity';
+import { Compra } from 'src/compras/entities/compra.entity';
+import { Caja } from 'src/cajas/entities/caja.entity';
+import * as bcrypt from 'bcrypt';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -10,12 +17,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { Rol } from 'src/roles/entities/rol.entity';
-import { Sucursal } from 'src/sucursales/entities/sucursal.entity';
-import { Venta } from 'src/ventas/entities/venta.entity';
-import { Compra } from 'src/compras/entities/compra.entity';
-import { Caja } from 'src/cajas/entities/caja.entity';
 
 @Entity('usuarios')
 export class Usuario {
@@ -80,6 +81,9 @@ export class Usuario {
 
   @OneToMany(() => Caja, (caja) => caja.usuarioCierre)
   cajasCierre: Caja[];
+
+  @OneToMany(() => MovimientoInventario, (movimiento) => movimiento.usuario)
+  movimientos: MovimientoInventario[];
 
   @BeforeInsert()
   @BeforeUpdate()
