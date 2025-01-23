@@ -1,3 +1,5 @@
+import { Producto } from '../../productos/entities/producto.entity';
+import { Compra } from './compra.entity';
 import {
     Entity,
     PrimaryGeneratedColumn,
@@ -5,8 +7,6 @@ import {
     ManyToOne,
     CreateDateColumn,
   } from 'typeorm';
-  import { Compra } from './compra.entity';
-  import { Producto } from '../../productos/entities/producto.entity';
   
   @Entity('detalle_compras')
   export class DetalleCompra {

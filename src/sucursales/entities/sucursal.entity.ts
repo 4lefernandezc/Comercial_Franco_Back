@@ -1,6 +1,7 @@
 import { Caja } from 'src/cajas/entities/caja.entity';
 import { Compra } from 'src/compras/entities/compra.entity';
 import { InventarioSucursal } from 'src/inventarios_sucursales/entities/inventario_sucursal.entity';
+import { MovimientoInventario } from 'src/movimientos_inventarios/entities/movimientos_inventario.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Venta } from 'src/ventas/entities/venta.entity';
 import {
@@ -52,4 +53,10 @@ export class Sucursal {
 
   @OneToMany(() => Caja, (caja) => caja.sucursal)
   cajas: Caja[];
+
+  @OneToMany(() => MovimientoInventario, (movimiento) => movimiento.usuario)
+  movimientosOrigen: MovimientoInventario[];
+
+  @OneToMany(() => MovimientoInventario, (movimiento) => movimiento.usuario)
+  movimientosDestino: MovimientoInventario[];
 }

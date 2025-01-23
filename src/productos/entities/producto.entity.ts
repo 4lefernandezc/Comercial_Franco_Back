@@ -1,6 +1,7 @@
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 import { Categoria } from 'src/categorias/entities/categoria.entity';
 import { InventarioSucursal } from 'src/inventarios_sucursales/entities/inventario_sucursal.entity';
+import { MovimientoInventario } from 'src/movimientos_inventarios/entities/movimientos_inventario.entity';
 import { DetalleVenta } from 'src/ventas/entities/detalle_venta.entity';
 import { DetalleCompra } from 'src/compras/entities/detalle_compra.entity';
 import {
@@ -68,4 +69,7 @@ export class Producto {
 
   @OneToMany(() => DetalleCompra, (detalleCompra) => detalleCompra.producto)
   detallesCompra: DetalleCompra[];
+
+  @OneToMany(() => MovimientoInventario, (movimiento) => movimiento.usuario)
+  movimientos: MovimientoInventario[];
 }
