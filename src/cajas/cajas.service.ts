@@ -9,6 +9,7 @@ import { Caja } from './entities/caja.entity';
 import { CreateCajaDto } from './dto/create-caja.dto';
 import { Venta } from '../ventas/entities/venta.entity';
 import { Compra } from 'src/compras/entities/compra.entity';
+import { QueryCajaDto } from './dto/query-caja.dto';
 
 @Injectable()
 export class CajasService {
@@ -107,7 +108,7 @@ export class CajasService {
         montoInicial,
         totalIngresos,
         totalEgresos,
-        montoFinal
+        montoFinal,
       });
 
       // Actualizamos la caja usando el queryRunner
@@ -159,9 +160,134 @@ export class CajasService {
     return caja;
   }
 
-  async obtenerCajas(): Promise<Caja[]> {
-    return this.cajaRepository.find({
-      relations: ['usuarioApertura', 'usuarioCierre', 'sucursal'],
-    });
+  async obtenerCajas(q: QueryCajaDto) {
+    const {
+      page,
+      limit,
+      montoInicial,
+      montoFinal,
+      totalIngresos,
+      totalEgresos,
+      fechaApertura,
+      fechaCierre,
+      fechaAperturaInicio,
+      fechaAperturaFin,
+      fechaCierreInicio,
+      fechaCierreFin,
+      estado,
+      usuarioAperturaId,
+      usuarioCierreId,
+      sucursalId,
+      sidx,
+      sord,
+    } = q;
+
+    const query = this.cajaRepository
+      .createQueryBuilder('cajas')
+      .select([
+        'cajas.id',
+        'cajas.montoInicial',
+        'cajas.montoFinal',
+        'cajas.totalIngresos',
+        'cajas.totalEgresos',
+        'cajas.fechaApertura',
+        'cajas.fechaCierre',
+        'cajas.estado',
+        'cajas.usuarioAperturaId',
+        'cajas.usuarioCierreId',
+        'cajas.sucursalId',
+      ])
+      .leftJoinAndSelect('cajas.usuarioApertura', 'usuarioApertura')
+      .leftJoinAndSelect('cajas.usuarioCierre', 'usuarioCierre')
+      .leftJoinAndSelect('cajas.sucursal', 'sucursal');
+
+    if (montoInicial) {
+      query.andWhere('cajas.montoInicial = :montoInicial', { montoInicial });
+    }
+
+    if (montoFinal) {
+      query.andWhere('cajas.montoFinal = :montoFinal', { montoFinal });
+    }
+
+    if (totalIngresos) {
+      query.andWhere('cajas.totalIngresos = :totalIngresos', { totalIngresos });
+    }
+
+    if (totalEgresos) {
+      query.andWhere('cajas.totalEgresos = :totalEgresos', { totalEgresos });
+    }
+
+    if (fechaApertura) {
+      query.andWhere('DATE(cajas.fechaApertura) = :fechaApertura', {
+        fechaApertura,
+      });
+    }
+
+    if (fechaCierre) {
+      query.andWhere('DATE(cajas.fechaCierre) = :fechaCierre', { fechaCierre });
+    }
+
+    // Filtro por rango de fechas
+    if (fechaAperturaInicio && fechaAperturaFin) {
+      query.andWhere('cajas.fechaApertura BETWEEN :inicio AND :fin', {
+        inicio: fechaAperturaInicio,
+        fin: fechaAperturaFin,
+      });
+    } else if (fechaAperturaInicio) {
+      query.andWhere('cajas.fechaApertura >= :inicio', {
+        inicio: fechaAperturaInicio,
+      });
+    } else if (fechaAperturaFin) {
+      query.andWhere('cajas.fechaApertura <= :fin', { fin: fechaAperturaFin });
+    }
+
+    if (fechaCierreInicio && fechaCierreFin) {
+      query.andWhere('cajas.fechaCierre BETWEEN :inicio AND :fin', {
+        inicio: fechaCierreInicio,
+        fin: fechaCierreFin,
+      });
+    } else if (fechaCierreInicio) {
+      query.andWhere('cajas.fechaCierre >= :inicio', {
+        inicio: fechaCierreInicio,
+      });
+    } else if (fechaCierreFin) {
+      query.andWhere('cajas.fechaCierre <= :fin', { fin: fechaCierreFin });
+    }
+
+    if (estado) {
+      query.andWhere('cajas.estado = :estado', { estado });
+    }
+
+    if (usuarioAperturaId) {
+      query.andWhere('cajas.usuarioAperturaId = :usuarioAperturaId', {
+        usuarioAperturaId,
+      });
+    }
+
+    if (usuarioCierreId) {
+      query.andWhere('cajas.usuarioCierreId = :usuarioCierreId', {
+        usuarioCierreId,
+      });
+    }
+
+    if (sucursalId) {
+      query.andWhere('cajas.sucursalId = :sucursalId', { sucursalId });
+    }
+
+    if (sidx) {
+      query.orderBy(`cajas.${sidx}`, sord);
+    }
+
+    const [result, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: result,
+      total,
+      page,
+      pageCount: Math.ceil(total / limit),
+    };
   }
 }

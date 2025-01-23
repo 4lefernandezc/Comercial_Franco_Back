@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Param, Get, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CajasService } from './cajas.service';
 import { CreateCajaDto } from './dto/create-caja.dto';
 import { CloseCajaDto } from './dto/close-caja.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { QueryCajaDto } from './dto/query-caja.dto';
 
 @ApiTags('Cajas')
 @ApiBearerAuth()
@@ -14,8 +15,8 @@ export class CajasController {
 
   @Get()
   @ApiResponse({ status: 200, description: 'Listado de cajas' })
-  async obtenerCajas() {
-    return this.cajasService.obtenerCajas();
+  async obtenerCajas(@Query() query: QueryCajaDto) {
+    return this.cajasService.obtenerCajas(query);
   }
 
   @Post()
