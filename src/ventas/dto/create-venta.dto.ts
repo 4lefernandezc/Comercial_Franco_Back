@@ -40,6 +40,11 @@ export class CreateVentaDto {
   @IsNotEmpty()
   idSucursal: number;
 
+  @ApiProperty({ description: 'Monto pagado por el cliente', example: 100.0, nullable: true })
+  @IsNumber()
+  @IsOptional()
+  montoPagado: number;
+
   @ApiProperty({
     description: 'Detalles de los productos vendidos',
     type: [DetalleVentaDto],

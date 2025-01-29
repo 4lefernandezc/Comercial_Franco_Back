@@ -45,7 +45,7 @@ export class VentasService {
     await queryRunner.startTransaction();
 
     try {
-        const { detalles, idSucursal, idCliente, idUsuario, tipoDocumento } = createVentaDto;
+        const { detalles, idSucursal, idCliente, idUsuario, tipoDocumento, montoPagado } = createVentaDto;
       let subtotalVenta = 0;
 
       for (const detalle of detalles) {
@@ -98,6 +98,16 @@ export class VentasService {
         }),
       );
 
+      console.log("total",subtotalVenta)
+
+      if (montoPagado < subtotalVenta) {
+        throw new BadRequestException(
+          `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`
+        );
+      }
+
+      const cambio = montoPagado - subtotalVenta;
+
       const numeroDocumento = await this.generarNumeroDocumento(tipoDocumento);
 
       const venta = this.ventasRepository.create({
@@ -107,6 +117,8 @@ export class VentasService {
         metodoPago: createVentaDto.metodoPago,
         estado: 'completada',
         caja: cajaActual,
+        montoPagado: montoPagado,
+        cambio:cambio,
         cliente: idCliente ? { id: idCliente } : null,
         usuario: { id: idUsuario },
         sucursal: { id: idSucursal }

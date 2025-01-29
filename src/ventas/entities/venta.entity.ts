@@ -44,6 +44,12 @@ export class Venta {
   })
   estado: string;
 
+  @Column({ name: 'monto_pagado', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  montoPagado: number;
+
+  @Column({ name: 'cambio', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  cambio: number;
+
   @Column({ name: 'fecha_anulacion', type: 'timestamp', nullable: true })
   fechaAnulacion: Date;
 
