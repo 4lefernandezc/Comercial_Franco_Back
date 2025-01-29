@@ -4,12 +4,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Between } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Caja } from './entities/caja.entity';
 import { CreateCajaDto } from './dto/create-caja.dto';
 import { Venta } from '../ventas/entities/venta.entity';
 import { Compra } from 'src/compras/entities/compra.entity';
 import { QueryCajaDto } from './dto/query-caja.dto';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class CajasService {
@@ -21,6 +22,8 @@ export class CajasService {
     private readonly ventaRepository: Repository<Venta>,
     @InjectRepository(Compra)
     private readonly compraRepository: Repository<Compra>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
   async abrirCaja(createCajaDto: CreateCajaDto): Promise<Caja> {
@@ -55,6 +58,14 @@ export class CajasService {
     await queryRunner.startTransaction();
 
     try {
+      const usuarioCierre = await this.usuarioRepository.findOne({
+        where: { id: idUsuarioCierre },
+      });
+
+      if (!usuarioCierre) {
+        throw new NotFoundException(`Usuario con ID ${idUsuarioCierre} no encontrado`);
+      }
+
       const caja = await this.cajaRepository.findOne({
         where: { id: idCaja },
         relations: ['sucursal'],
