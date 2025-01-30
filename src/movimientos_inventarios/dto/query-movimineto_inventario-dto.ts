@@ -16,10 +16,15 @@ export class QueryMovimientoInventarioDto extends GetPaginationSortParamsDto {
   @IsOptional()
   readonly idSucursal?: number;
 
-  @ApiPropertyOptional({ example: 'ENTRADA' })
+  @ApiPropertyOptional({ example: 'entrada', enum: ['entrada', 'salida', 'transferencia'] })
   @IsOptional()
   @IsString()
   readonly tipoMovimiento?: string;
+
+  @ApiPropertyOptional({ example: 'REALIZADO' })
+  @IsOptional()
+  @IsString()
+  readonly estado?: string;
 
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()

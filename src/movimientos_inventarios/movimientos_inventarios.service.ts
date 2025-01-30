@@ -7,9 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Like, QueryRunner, Repository } from 'typeorm';
 import { CreateMovimientoInventarioDto } from './dto/create-movimiento_inventario.dto';
-import { MovimientoInventario } from './entities/movimientos_inventario.entity';
 import { QueryMovimientoInventarioDto } from './dto/query-movimineto_inventario-dto';
+import { MovimientoInventario } from './entities/movimientos_inventario.entity';
 import { InventarioSucursal } from '../inventarios_sucursales/entities/inventario_sucursal.entity';
+import { Sucursal } from '../sucursales/entities/sucursal.entity';
+import { Producto } from '../productos/entities/producto.entity';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class MovimientosInventariosService {
@@ -19,6 +22,12 @@ export class MovimientosInventariosService {
     private readonly movimientosRepository: Repository<MovimientoInventario>,
     @InjectRepository(InventarioSucursal)
     private readonly inventarioRepository: Repository<InventarioSucursal>,
+    @InjectRepository(Sucursal)
+    private readonly sucursalRepository: Repository<Sucursal>,
+    @InjectRepository(Producto)
+    private readonly productoRepository: Repository<Producto>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
   async create(
@@ -30,12 +39,21 @@ export class MovimientosInventariosService {
 
     try {
       const {
+        idUsuario,
         idProducto,
         idSucursal,
         tipoMovimiento,
         cantidad,
         idSucursalDestino,
       } = createMovimientoInventarioDto;
+
+      // Validate entities existence
+      await this.validateEntities(
+        idUsuario,
+        idProducto,
+        idSucursal,
+        idSucursalDestino,
+      );
 
       // Validate movement type and required fields
       this.validateMovementType(tipoMovimiento, idSucursalDestino);
@@ -44,7 +62,7 @@ export class MovimientosInventariosService {
       const documentoReferencia =
         await this.generateDocumentReference(tipoMovimiento);
 
-      // Handle different movement types
+      // Handle different movement types using queryRunner for consistent transactions
       switch (tipoMovimiento) {
         case 'entrada':
           await this.handleEntradaMovement(
@@ -71,20 +89,35 @@ export class MovimientosInventariosService {
             cantidad,
           );
           break;
+        default:
+          throw new BadRequestException(
+            'Tipo de movimiento inválido. Solo se admiten los tipos: entrada, salida, transferencia',
+          );
       }
 
-      // Create and save movement
+      // Create and save movement using queryRunner
       const nuevoMovimiento = this.movimientosRepository.create({
         ...createMovimientoInventarioDto,
         documentoReferencia,
       });
 
-      const savedMovimiento = await queryRunner.manager.save(nuevoMovimiento);
+      const savedMovimiento = await queryRunner.manager.save(
+        MovimientoInventario,
+        nuevoMovimiento,
+      );
 
       await queryRunner.commitTransaction();
       return savedMovimiento;
     } catch (error) {
       await queryRunner.rollbackTransaction();
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+
       throw new InternalServerErrorException(
         `Error al crear movimiento de inventario: ${error.message}`,
       );
@@ -93,10 +126,64 @@ export class MovimientosInventariosService {
     }
   }
 
+  private async validateEntities(
+    idUsuario: number,
+    idProducto: number,
+    idSucursal: number,
+    idSucursalDestino?: number,
+  ): Promise<void> {
+    // Validate user
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id: idUsuario },
+    });
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con ID ${idUsuario} no encontrado`);
+    }
+
+    // Validate product
+    const producto = await this.productoRepository.findOne({
+      where: { id: idProducto },
+    });
+    if (!producto) {
+      throw new NotFoundException(
+        `Producto con ID ${idProducto} no encontrado`,
+      );
+    }
+
+    // Validate source branch
+    const sucursal = await this.sucursalRepository.findOne({
+      where: { id: idSucursal },
+    });
+    if (!sucursal) {
+      throw new NotFoundException(
+        `Sucursal con ID ${idSucursal} no encontrada`,
+      );
+    }
+
+    // Validate destination branch if provided
+    if (idSucursalDestino) {
+      const sucursalDestino = await this.sucursalRepository.findOne({
+        where: { id: idSucursalDestino },
+      });
+      if (!sucursalDestino) {
+        throw new NotFoundException(
+          `Sucursal destino con ID ${idSucursalDestino} no encontrada`,
+        );
+      }
+    }
+
+    // Validate destination branch and source branch are different
+    if (idSucursal === idSucursalDestino) {
+      throw new BadRequestException(
+        'La sucursal destino debe ser diferente a la sucursal origen',
+      );
+    }
+  }
+
   private validateMovementType(
     tipoMovimiento: string,
     idSucursalDestino?: number,
-  ) {
+  ): void {
     if (tipoMovimiento === 'transferencia' && !idSucursalDestino) {
       throw new BadRequestException(
         'Para transferencias, se requiere id_sucursal_destino',
@@ -109,8 +196,8 @@ export class MovimientosInventariosService {
     idProducto: number,
     idSucursal: number,
     cantidad: number,
-  ) {
-    const inventario = await this.inventarioRepository.findOne({
+  ): Promise<void> {
+    const inventario = await queryRunner.manager.findOne(InventarioSucursal, {
       where: { idProducto, idSucursal },
     });
 
@@ -129,7 +216,8 @@ export class MovimientosInventariosService {
       );
     }
 
-    await this.inventarioRepository.update(
+    await queryRunner.manager.update(
+      InventarioSucursal,
       { id: inventario.id },
       { stockActual: inventario.stockActual + cantidad },
     );
@@ -140,8 +228,8 @@ export class MovimientosInventariosService {
     idProducto: number,
     idSucursal: number,
     cantidad: number,
-  ) {
-    const inventario = await this.inventarioRepository.findOne({
+  ): Promise<void> {
+    const inventario = await queryRunner.manager.findOne(InventarioSucursal, {
       where: { idProducto, idSucursal },
     });
 
@@ -163,7 +251,8 @@ export class MovimientosInventariosService {
       );
     }
 
-    await this.inventarioRepository.update(
+    await queryRunner.manager.update(
+      InventarioSucursal,
       { id: inventario.id },
       { stockActual: inventario.stockActual - cantidad },
     );
@@ -175,11 +264,13 @@ export class MovimientosInventariosService {
     idSucursalOrigen: number,
     idSucursalDestino: number,
     cantidad: number,
-  ) {
-
-    const inventarioOrigen = await this.inventarioRepository.findOne({
-      where: { idProducto, idSucursal: idSucursalOrigen },
-    });
+  ): Promise<void> {
+    const inventarioOrigen = await queryRunner.manager.findOne(
+      InventarioSucursal,
+      {
+        where: { idProducto, idSucursal: idSucursalOrigen },
+      },
+    );
 
     if (!inventarioOrigen) {
       throw new NotFoundException(
@@ -202,14 +293,18 @@ export class MovimientosInventariosService {
       );
     }
 
-    await this.inventarioRepository.update(
+    await queryRunner.manager.update(
+      InventarioSucursal,
       { id: inventarioOrigen.id },
       { stockActual: inventarioOrigen.stockActual - cantidad },
     );
 
-    let inventarioDestino = await this.inventarioRepository.findOne({
-      where: { idProducto, idSucursal: idSucursalDestino },
-    });
+    let inventarioDestino = await queryRunner.manager.findOne(
+      InventarioSucursal,
+      {
+        where: { idProducto, idSucursal: idSucursalDestino },
+      },
+    );
 
     if (!inventarioDestino) {
       inventarioDestino = this.inventarioRepository.create({
@@ -218,7 +313,7 @@ export class MovimientosInventariosService {
         stockActual: 0,
         stockMinimo: 0,
       });
-      await this.inventarioRepository.save(inventarioDestino);
+      await queryRunner.manager.save(InventarioSucursal, inventarioDestino);
     }
 
     if (
@@ -230,7 +325,8 @@ export class MovimientosInventariosService {
       );
     }
 
-    await this.inventarioRepository.update(
+    await queryRunner.manager.update(
+      InventarioSucursal,
       { id: inventarioDestino.id },
       { stockActual: inventarioDestino.stockActual + cantidad },
     );
@@ -261,7 +357,7 @@ export class MovimientosInventariosService {
       case 'transferencia':
         return 'TRANS';
       default:
-        throw new BadRequestException('Tipo de movimiento inválido');
+        throw new BadRequestException('Tipo de movimiento inválido. Solo se admiten los tipos: entrada, salida, transferencia');
     }
   }
 
@@ -272,6 +368,7 @@ export class MovimientosInventariosService {
       idProducto,
       idSucursal,
       tipoMovimiento,
+      estado,
       idUsuario,
       idSucursalDestino,
       sidx,
@@ -288,6 +385,7 @@ export class MovimientosInventariosService {
         'movimientos_inventarios.tipoMovimiento',
         'movimientos_inventarios.cantidad',
         'movimientos_inventarios.motivo',
+        'movimientos_inventarios.estado',
         'movimientos_inventarios.idUsuario',
         'movimientos_inventarios.idSucursalDestino',
         'movimientos_inventarios.fechaCreacion',
@@ -320,6 +418,12 @@ export class MovimientosInventariosService {
           tipoMovimiento: `%${tipoMovimiento}%`,
         },
       );
+    }
+
+    if (estado) {
+      query.andWhere('movimientos_inventarios.estado ILIKE :estado', {
+        estado: `%${estado}%`,
+      });
     }
 
     if (idUsuario) {
