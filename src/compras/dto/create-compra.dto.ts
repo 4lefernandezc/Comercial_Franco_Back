@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, IsArray, ValidateNested, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsArray, ValidateNested, IsOptional, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -8,9 +8,11 @@ class DetalleCompraDto {
   @IsNumber()
   idProducto: number;
 
-  @ApiProperty({ description: 'Cantidad del producto', example: 2 })
+  @ApiProperty({ description: 'Cantidad del producto', example: 2.5 })
   @IsNotEmpty()
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 3 }, { message: 'La cantidad debe ser un número con máximo 3 decimales' })
+  @Min(0.001, { message: 'La cantidad debe ser mayor a 0' })
+  @Max(1000000, { message: 'Cantidad demasiado grande' })
   cantidad: number;
 
   @ApiProperty({ description: 'Descuento aplicado al producto', example: 10.0, nullable: true })

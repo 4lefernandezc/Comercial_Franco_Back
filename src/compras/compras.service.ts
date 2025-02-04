@@ -46,20 +46,36 @@ export class ComprasService {
       const { detalles, idSucursal, idProveedor, idUsuario, tipoDocumento } = createCompraDto;
 
       for (const detalle of detalles) {
-        const inventario = await this.inventarioRepository.findOne({
-          where: {
-            idProducto: detalle.idProducto,
-            idSucursal: idSucursal
-          },
-          relations: ['producto']
+        const producto = await this.productoRepository.findOne({
+          where: { id: detalle.idProducto },
+          relations: ['inventarios']
         });
 
+        if (!producto) {
+          throw new BadRequestException(`Producto con ID ${detalle.idProducto} no encontrado`);
+        }
+
+        const inventario = producto.inventarios.find(
+          inv => inv.idSucursal === idSucursal
+        );
+
+        if (inventario && !inventario.seVendeFraccion && !Number.isInteger(detalle.cantidad)) {
+          throw new BadRequestException(
+            `El producto ${producto.nombre} no permite compras fraccionadas`
+          );
+        }
+
         if (inventario && inventario.stockMaximo !== null) {
-          const nuevoStock = (inventario.stockActual || 0) + detalle.cantidad;
+          console.log('Stock actual:', inventario.stockActual);
+          console.log('Cantidad:', detalle.cantidad);
+          const stockActual = Number(inventario.stockActual || 0);
+          const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(3));
+          console.log('Nuevo stock:', nuevoStock);
+          
           if (nuevoStock > inventario.stockMaximo) {
             throw new BadRequestException(
-              `La compra excede el stock máximo permitido para el producto ${inventario.producto.nombre}. ` +
-              `Stock actual: ${inventario.stockActual}, Stock máximo: ${inventario.stockMaximo}, ` +
+              `La compra excede el stock máximo permitido para el producto ${producto.nombre}. ` +
+              `Stock actual: ${stockActual}, Stock máximo: ${inventario.stockMaximo}, ` +
               `Cantidad a comprar: ${detalle.cantidad}`
             );
           }
@@ -112,12 +128,15 @@ export class ComprasService {
               idSucursal: idSucursal
             }
           });
-
+      
+          const stockActual = Number(inventario?.stockActual || 0);
+          const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(3));
+      
           if (inventario) {
             await this.inventarioRepository.update(
               { id: inventario.id },
               { 
-                stockActual: inventario.stockActual + detalle.cantidad,
+                stockActual: nuevoStock,
                 fechaModificacion: new Date()
               }
             );
@@ -126,10 +145,14 @@ export class ComprasService {
               idProducto: detalle.idProducto,
               idSucursal: idSucursal,
               stockActual: detalle.cantidad,
-              stockMaximo: null
+              stockMinimo: 0,
+              stockMaximo: null,
+              seVendeFraccion: true,
+              fechaCreacion: new Date(),
+              fechaModificacion: new Date()
             });
           }
-
+      
           return this.detalleCompraRepository.save(
             this.detalleCompraRepository.create({
               cantidad: detalle.cantidad,
@@ -146,8 +169,17 @@ export class ComprasService {
       await queryRunner.commitTransaction();
       return this.obtenerCompraPorId(compraGuardada.id);
     } catch (error) {
+      console.error('Error en la creación de compra:', error);
       await queryRunner.rollbackTransaction();
-      throw error;
+      
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      throw new InternalServerErrorException(
+        'Error al procesar la compra',
+        error.message
+      );
     } finally {
       await queryRunner.release();
     }
@@ -300,6 +332,13 @@ export class ComprasService {
           },
           lock: { mode: 'pessimistic_write' }
         });
+  
+        if (inventario.stockActual < detalle.cantidad) {
+          throw new BadRequestException(
+            `No se puede anular la compra. El stock actual (${inventario.stockActual}) 
+            es menor que la cantidad a devolver (${detalle.cantidad}) para el producto ${detalle.producto.nombre}`
+          );
+        }
 
         if (!inventario) {
           throw new NotFoundException(
