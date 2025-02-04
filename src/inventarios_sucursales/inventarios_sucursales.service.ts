@@ -31,7 +31,8 @@ export class InventariosSucursalesService {
       stockActual,
       stockMinimo,
       stockMaximo,
-      tipoUnidad,
+      tipoUnidadId,
+      seVendeFraccion,
       sidx,
       sord,
     } = q;
@@ -43,12 +44,14 @@ export class InventariosSucursalesService {
       'inventarios_sucursales.stockActual',
       'inventarios_sucursales.stockMinimo',
       'inventarios_sucursales.stockMaximo',
-      'inventarios_sucursales.tipoUnidad',
+      'inventarios_sucursales.tipoUnidadId',
+      'inventarios_sucursales.seVendeFraccion',
       'inventarios_sucursales.fechaCreacion',
       'inventarios_sucursales.fechaModificacion',
     ])
     .leftJoinAndSelect('inventarios_sucursales.producto', 'producto')
-    .leftJoinAndSelect('inventarios_sucursales.sucursal', 'sucursal');
+    .leftJoinAndSelect('inventarios_sucursales.sucursal', 'sucursal')
+    .leftJoinAndSelect('inventarios_sucursales.tipoUnidad', 'tipoUnidad');
 
     if (idProducto) {
       query.andWhere('inventarios_sucursales.idProducto = :idProducto', {
@@ -80,9 +83,15 @@ export class InventariosSucursalesService {
       });
     }
 
-    if (tipoUnidad) {
-      query.andWhere('inventarios_sucursales.tipoUnidad ILIKE :tipoUnidad', {
-        tipoUnidad: `%${tipoUnidad}%`,
+    if (tipoUnidadId) {
+      query.andWhere('inventarios_sucursales.tipoUnidadId = :tipoUnidadId', {
+        tipoUnidadId: tipoUnidadId,
+      });
+    }
+
+    if (seVendeFraccion !== undefined) {
+      query.andWhere('inventarios_sucursales.seVendeFraccion = :seVendeFraccion', {
+      seVendeFraccion,
       });
     }
 

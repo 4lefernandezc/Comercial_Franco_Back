@@ -89,9 +89,9 @@ export class ProveedoresService {
       });
     }
 
-    if (activo) {
+    if (activo !== undefined) {
       query.andWhere('proveedores.activo = :activo', {
-        activo: activo,
+        activo,
       });
     }
 

@@ -23,8 +23,11 @@ export class QueryInventarioSucursalDto extends GetPaginationSortParamsDto {
   @IsOptional()
   readonly stockMaximo?: number;
 
-  @ApiPropertyOptional({ example: 'unidad' })
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsString()
-  readonly tipoUnidad?: string;
+  readonly tipoUnidadId?: number;
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  readonly seVendeFraccion?: boolean;
 }

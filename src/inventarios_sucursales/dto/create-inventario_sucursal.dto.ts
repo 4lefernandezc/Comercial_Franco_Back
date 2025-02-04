@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsNotEmpty,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateInventarioSucursalDto {
@@ -43,10 +44,15 @@ export class CreateInventarioSucursalDto {
   readonly stockMaximo?: number;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'El campo tipo_unidad es obligatorio' })
-  @IsString({ message: 'El campo tipo_unidad debe ser de tipo cadena' })
-  @MaxLength(150, {
-    message: 'El campo tipo_unidad no debe ser mayor a 255 caracteres',
+  @IsDefined({ message: 'El campo tipo_unidad_id debe estar definido' })
+  @IsNumber({}, { message: 'El campo tipo_unidad_id debe ser de tipo numérico' })
+  readonly tipoUnidadId: number;
+
+  @ApiProperty({ 
+    description: 'Indica si el producto se puede vender en fracciones', 
+    default: false 
   })
-  readonly tipoUnidad: string;
+  @IsOptional()
+  @IsBoolean({ message: 'El campo se_vende_fraccion debe ser un valor booleano' })
+  readonly seVendeFraccion?: boolean;
 }
