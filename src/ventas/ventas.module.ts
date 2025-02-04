@@ -14,7 +14,6 @@ import { Caja } from 'src/cajas/entities/caja.entity';
       Venta,
       DetalleVenta,
       Producto,
-      InventarioSucursal,
       Caja
     ])
   ],

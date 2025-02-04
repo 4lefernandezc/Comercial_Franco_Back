@@ -19,10 +19,6 @@ export class VentasService {
     private readonly dataSource: DataSource,
     @InjectRepository(Venta)
     private readonly ventasRepository: Repository<Venta>,
-    @InjectRepository(DetalleVenta)
-    private readonly detalleVentaRepository: Repository<DetalleVenta>,
-    @InjectRepository(InventarioSucursal)
-    private readonly inventarioRepository: Repository<InventarioSucursal>,
     @InjectRepository(Caja)
     private readonly cajaRepository: Repository<Caja>,
   ) {}
@@ -35,115 +31,157 @@ export class VentasService {
         estado: 'abierta',
       },
     });
-    
+
     if (!cajaActual) {
-      throw new BadRequestException('No hay una caja abierta para realizar ventas');
+      throw new BadRequestException(
+        'No hay una caja abierta para realizar ventas',
+      );
     }
-    
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-        const { detalles, idSucursal, idCliente, idUsuario, tipoDocumento, montoPagado } = createVentaDto;
+      const {
+        detalles,
+        idSucursal,
+        idCliente,
+        idUsuario,
+        tipoDocumento,
+        montoPagado,
+      } = createVentaDto;
       let subtotalVenta = 0;
 
       for (const detalle of detalles) {
-        const inventario = await this.inventarioRepository.findOne({
-          where: {
-            idProducto: detalle.idProducto,
-            idSucursal: idSucursal
+        const inventario = await queryRunner.manager.findOne(
+          InventarioSucursal,
+          {
+            where: {
+              idProducto: detalle.idProducto,
+              idSucursal: idSucursal,
+            },
+            relations: ['producto'],
           },
-          relations: ['producto']
-        });
+        );
 
         if (!inventario) {
           throw new BadRequestException(
-                    `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`
+            `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`,
+          );
+        }
+
+        if (
+          !inventario.seVendeFraccion &&
+          !Number.isInteger(detalle.cantidad)
+        ) {
+          throw new BadRequestException(
+            `El producto ${inventario.producto.nombre} no permite ventas fraccionadas`,
           );
         }
 
         if (inventario.stockActual < detalle.cantidad) {
           throw new BadRequestException(
-                    `Stock insuficiente para el producto ${inventario.producto.nombre}. Stock actual: ${inventario.stockActual}`
+            `Stock insuficiente para el producto ${inventario.producto.nombre}. Stock actual: ${inventario.stockActual}`,
           );
         }
-      }
 
-      const detallesConPrecios = await Promise.all(
-        detalles.map(async (detalle) => {
-          const inventario = await this.inventarioRepository.findOne({
-            where: {
-              idProducto: detalle.idProducto,
-              idSucursal: idSucursal
-            },
-            relations: ['producto']
-          });
-
+        if (inventario.stockMinimo !== null) {
           const nuevoStock = inventario.stockActual - detalle.cantidad;
-          await this.inventarioRepository.update(
-            { id: inventario.id },
-            { stockActual: nuevoStock }
-          );
+          if (nuevoStock < inventario.stockMinimo) {
+            throw new BadRequestException(
+              `La venta reduce el stock por debajo del mínimo permitido para el producto ${inventario.producto.nombre}. ` +
+                `Stock actual: ${inventario.stockActual}, Stock mínimo: ${inventario.stockMinimo}, ` +
+                `Cantidad a vender: ${detalle.cantidad}`,
+            );
+          }
+        }
 
-          const precioUnitario = inventario.producto.precioVenta;
-          const subtotalDetalle = (precioUnitario * detalle.cantidad) - (detalle.descuento || 0);
-          subtotalVenta += subtotalDetalle;
+        const detallesConPrecios = await Promise.all(
+          detalles.map(async (detalle) => {
+            const inventario = await queryRunner.manager.findOne(
+              InventarioSucursal,
+              {
+                where: {
+                  idProducto: detalle.idProducto,
+                  idSucursal: idSucursal,
+                },
+                relations: ['producto'],
+              },
+            );
 
-          return {
-            ...detalle,
-            precio_unitario: precioUnitario,
-            subtotal: subtotalDetalle
-          };
-        }),
-      );
+            console.log('Stock actual:', inventario.stockActual);
+            console.log('Cantidad:', detalle.cantidad);
+            const nuevoStock = Number(
+              (inventario.stockActual - detalle.cantidad).toFixed(3),
+            );
+            console.log('Nuevo stock:', nuevoStock);
 
-      console.log("total",subtotalVenta)
+            await queryRunner.manager.update(
+              InventarioSucursal,
+              { id: inventario.id },
+              { stockActual: nuevoStock },
+            );
 
-      if (montoPagado < subtotalVenta) {
-        throw new BadRequestException(
-          `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`
+            const precioUnitario = inventario.producto.precioVenta;
+            const subtotalDetalle =
+              precioUnitario * detalle.cantidad - (detalle.descuento || 0);
+            subtotalVenta += subtotalDetalle;
+
+            return {
+              ...detalle,
+              precio_unitario: precioUnitario,
+              subtotal: subtotalDetalle,
+            };
+          }),
         );
+
+        if (montoPagado < subtotalVenta) {
+          throw new BadRequestException(
+            `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`,
+          );
+        }
+
+        const cambio = montoPagado - subtotalVenta;
+        const numeroDocumento =
+          await this.generarNumeroDocumento(tipoDocumento);
+
+        const venta = queryRunner.manager.create(Venta, {
+          numeroDocumento: numeroDocumento,
+          subtotal: subtotalVenta,
+          totalVenta: subtotalVenta,
+          metodoPago: createVentaDto.metodoPago,
+          estado: 'completada',
+          caja: cajaActual,
+          montoPagado: montoPagado,
+          cambio: cambio,
+          cliente: idCliente ? { id: idCliente } : null,
+          usuario: { id: idUsuario },
+          sucursal: { id: idSucursal },
+        });
+
+        const ventaGuardada = await queryRunner.manager.save(venta);
+
+        const detallesVenta = detallesConPrecios.map((detalle) =>
+          queryRunner.manager.create(DetalleVenta, {
+            cantidad: detalle.cantidad,
+            precioUnitario: detalle.precio_unitario,
+            descuento: detalle.descuento || 0,
+            subtotal: detalle.subtotal,
+            producto: { id: detalle.idProducto },
+            venta: ventaGuardada,
+          }),
+        );
+
+        await queryRunner.manager.save(detallesVenta);
+
+        await queryRunner.commitTransaction();
+
+        return this.obtenerVentaPorId(ventaGuardada.id);
       }
-
-      const cambio = montoPagado - subtotalVenta;
-
-      const numeroDocumento = await this.generarNumeroDocumento(tipoDocumento);
-
-      const venta = this.ventasRepository.create({
-        numeroDocumento: numeroDocumento,
-        subtotal: subtotalVenta,
-        totalVenta: subtotalVenta,
-        metodoPago: createVentaDto.metodoPago,
-        estado: 'completada',
-        caja: cajaActual,
-        montoPagado: montoPagado,
-        cambio:cambio,
-        cliente: idCliente ? { id: idCliente } : null,
-        usuario: { id: idUsuario },
-        sucursal: { id: idSucursal }
-      });
-
-      const ventaGuardada = await this.ventasRepository.save(venta);
-
-      const detallesVenta = detallesConPrecios.map(detalle => 
-        this.detalleVentaRepository.create({
-          cantidad: detalle.cantidad,
-          precioUnitario: detalle.precio_unitario,
-          descuento: detalle.descuento || 0,
-          subtotal: detalle.subtotal,
-          producto: { id: detalle.idProducto },
-          venta: ventaGuardada
-        }),
-      );
-
-      await this.detalleVentaRepository.save(detallesVenta);
-
-      await queryRunner.commitTransaction();
-
-      return this.obtenerVentaPorId(ventaGuardada.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      console.error('Error en la creación de venta:', error);
       throw error;
     } finally {
       await queryRunner.release();
@@ -167,13 +205,13 @@ export class VentasService {
     const ultimoNumero = parseInt(ultimaVenta.numeroDocumento.split('-')[1]);
     return `${tipo}-${ultimoNumero + 1}`;
   }
-  
+
   async obtenerVentaPorId(id: number): Promise<Venta> {
     const venta = await this.ventasRepository.findOne({
       where: { id },
       relations: {
         detalles: {
-          producto: true
+          producto: true,
         },
         cliente: true,
         usuario: true,
@@ -266,7 +304,7 @@ export class VentasService {
     try {
       const venta = await queryRunner.manager.findOne(Venta, {
         where: { id },
-        lock: { mode: 'pessimistic_write' }
+        lock: { mode: 'pessimistic_write' },
       });
 
       if (!venta) {
@@ -286,7 +324,9 @@ export class VentasService {
         .getOne();
 
       if (!ventaConDetalles) {
-        throw new NotFoundException(`No se encontraron los detalles de la venta ${id}`);
+        throw new NotFoundException(
+          `No se encontraron los detalles de la venta ${id}`,
+        );
       }
 
       for (const detalle of ventaConDetalles.detalles) {
@@ -307,12 +347,15 @@ export class VentasService {
           );
         }
 
+        const nuevoStock = Number(
+          (inventario.stockActual + detalle.cantidad).toFixed(3),
+        );
         await queryRunner.manager.update(
           InventarioSucursal,
           { id: inventario.id },
           {
-            stockActual: inventario.stockActual + detalle.cantidad,
-            fechaModificacion: new Date()
+            stockActual: nuevoStock,
+            fechaModificacion: new Date(),
           },
         );
       }
@@ -327,13 +370,16 @@ export class VentasService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
 
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 
       throw new InternalServerErrorException(
         'Error al procesar la anulación de la venta',
-        error.message
+        error.message,
       );
     } finally {
       await queryRunner.release();
