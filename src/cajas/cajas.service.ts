@@ -11,6 +11,7 @@ import { Venta } from '../ventas/entities/venta.entity';
 import { Compra } from 'src/compras/entities/compra.entity';
 import { QueryCajaDto } from './dto/query-caja.dto';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
+import { Sucursal } from 'src/sucursales/entities/sucursal.entity';
 
 @Injectable()
 export class CajasService {
@@ -24,6 +25,8 @@ export class CajasService {
     private readonly compraRepository: Repository<Compra>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
+    @InjectRepository(Sucursal)
+    private readonly sucursalRepository: Repository<Sucursal>,
   ) {}
 
   async abrirCaja(createCajaDto: CreateCajaDto): Promise<Caja> {
@@ -39,6 +42,22 @@ export class CajasService {
       throw new BadRequestException(
         'Ya existe una caja abierta para esta sucursal',
       );
+    }
+
+    const usuarioApertura = await this.usuarioRepository.findOne({
+      where: { id: createCajaDto.idUsuarioApertura },
+    });
+
+    if (!usuarioApertura) {
+      throw new NotFoundException(`Usuario con ID ${createCajaDto.idUsuarioApertura} no encontrado`);
+    }
+
+    const sucursal = await this.sucursalRepository.findOne({
+      where: { id: createCajaDto.idSucursal },
+    });
+
+    if (!sucursal) {
+      throw new NotFoundException(`Sucursal con ID ${createCajaDto.idSucursal} no encontrada`);
     }
 
     const caja = this.cajaRepository.create({

@@ -6,13 +6,15 @@ import { Caja } from './entities/caja.entity';
 import { Venta } from 'src/ventas/entities/venta.entity';
 import { Compra } from 'src/compras/entities/compra.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
+import { Sucursal } from 'src/sucursales/entities/sucursal.entity';
 
 @Module({
   imports:[TypeOrmModule.forFeature([
     Caja,
     Venta,
     Compra,
-    Usuario
+    Usuario,
+    Sucursal
   ])],
   controllers: [CajasController],
   providers: [CajasService],
