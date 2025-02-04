@@ -16,6 +16,7 @@ import { VentasModule } from './ventas/ventas.module';
 import { ComprasModule } from './compras/compras.module';
 import { CajasModule } from './cajas/cajas.module';
 import { MovimientosInventariosModule } from './movimientos_inventarios/movimientos_inventarios.module';
+import { TiposUnidadesModule } from './tipos_unidades/tipos_unidades.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -43,6 +44,7 @@ import { MovimientosInventariosModule } from './movimientos_inventarios/movimien
     ComprasModule,
     CajasModule,
     MovimientosInventariosModule,
+    TiposUnidadesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
