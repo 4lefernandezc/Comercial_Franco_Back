@@ -32,7 +32,15 @@ export class MovimientoInventario {
   @Column('varchar', { length: 50, name: 'tipo_movimiento' })
   tipoMovimiento: string;
 
-  @Column('integer', { name: 'cantidad' })
+  @Column('decimal', { 
+    name: 'cantidad', 
+    precision: 10, 
+    scale: 2, 
+    transformer: {
+      to: (value) => value,
+      from: (value) => parseFloat(value)
+    }
+  })
   cantidad: number;
 
   @Column('varchar', { length: 50, name: 'motivo' })

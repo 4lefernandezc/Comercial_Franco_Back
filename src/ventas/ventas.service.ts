@@ -110,12 +110,9 @@ export class VentasService {
               },
             );
 
-            console.log('Stock actual:', inventario.stockActual);
-            console.log('Cantidad:', detalle.cantidad);
             const nuevoStock = Number(
               (inventario.stockActual - detalle.cantidad).toFixed(3),
             );
-            console.log('Nuevo stock:', nuevoStock);
 
             await queryRunner.manager.update(
               InventarioSucursal,

@@ -37,7 +37,7 @@ export class InventarioSucursal {
   @Column('boolean', { 
     name: 'se_vende_fraccion', 
     default: false, 
-    comment: 'Indica si el producto se puede vender en fracciones' 
+    comment: 'Indica si el producto se puede vender, comprar o transferir en fracciones' 
   })
   seVendeFraccion: boolean;
 

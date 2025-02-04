@@ -7,6 +7,7 @@ import {
   IsDefined,
   IsNotEmpty,
   IsOptional,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateMovimientoInventarioDto {
@@ -30,8 +31,8 @@ export class CreateMovimientoInventarioDto {
 
   @ApiProperty()
   @IsNotEmpty({ message: 'La cantidad es obligatoria' })
-  @IsInt({ message: 'La cantidad debe ser un número entero' })
-  @Min(1, { message: 'La cantidad debe ser mayor a 0' })
+  @IsNumber({}, { message: 'La cantidad debe ser un número' })
+  @Min(0.00001, { message: 'La cantidad debe ser mayor a 0' })
   readonly cantidad: number;
 
   @ApiProperty()

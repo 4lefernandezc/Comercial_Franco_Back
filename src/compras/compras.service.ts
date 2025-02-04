@@ -66,11 +66,8 @@ export class ComprasService {
         }
 
         if (inventario && inventario.stockMaximo !== null) {
-          console.log('Stock actual:', inventario.stockActual);
-          console.log('Cantidad:', detalle.cantidad);
           const stockActual = Number(inventario.stockActual || 0);
           const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(3));
-          console.log('Nuevo stock:', nuevoStock);
           
           if (nuevoStock > inventario.stockMaximo) {
             throw new BadRequestException(

@@ -180,6 +180,28 @@ export class MovimientosInventariosService {
     }
   }
 
+  private async validateFractionalMovement(
+    idProducto: number, 
+    idSucursal: number, 
+    cantidad: number
+  ): Promise<void> {
+    const inventario = await this.inventarioRepository.findOne({
+      where: { idProducto, idSucursal }
+    });
+  
+    if (!inventario) {
+      throw new NotFoundException(
+        `Inventario no encontrado para producto ${idProducto} en sucursal ${idSucursal}`
+      );
+    }
+  
+    if (!inventario.seVendeFraccion && !Number.isInteger(cantidad)) {
+      throw new BadRequestException(
+        `El producto no permite movimientos fraccionados en esta sucursal`
+      );
+    }
+  }
+
   private validateMovementType(
     tipoMovimiento: string,
     idSucursalDestino?: number,
@@ -197,38 +219,55 @@ export class MovimientosInventariosService {
     idSucursal: number,
     cantidad: number,
   ): Promise<void> {
+    // Validate fractional movement
+    await this.validateFractionalMovement(idProducto, idSucursal, cantidad);
+  
+    // Find the inventory record
     const inventario = await queryRunner.manager.findOne(InventarioSucursal, {
       where: { idProducto, idSucursal },
     });
 
+    // Validate inventory existence
     if (!inventario) {
       throw new NotFoundException(
         `Inventario no encontrado para producto ${idProducto} en sucursal ${idSucursal}`,
       );
     }
-
+  
+    // Check maximum stock limit
     if (
       inventario.stockMaximo &&
-      inventario.stockActual + cantidad > inventario.stockMaximo
+      (parseFloat(inventario.stockActual.toString()) + cantidad > parseFloat(inventario.stockMaximo.toString()))
     ) {
       throw new BadRequestException(
-        `La cantidad excede el stock máximo permitido de ${inventario.stockMaximo}`,
+        `La cantidad excede el stock máximo permitido de ${inventario.stockMaximo}`
       );
     }
-
-    await queryRunner.manager.update(
+    
+    // Update the stock increment similarly
+    const result = await queryRunner.manager.update(
       InventarioSucursal,
       { id: inventario.id },
-      { stockActual: inventario.stockActual + cantidad },
+      { 
+        stockActual: () => `ROUND(stock_actual + ${cantidad}, 2)` 
+      }
     );
+  
+    // Verify the updated record
+    const updatedInventario = await queryRunner.manager.findOne(InventarioSucursal, {
+      where: { id: inventario.id }
+    });
   }
 
   private async handleSalidaMovement(
-    queryRunner: QueryRunner,
-    idProducto: number,
-    idSucursal: number,
-    cantidad: number,
-  ): Promise<void> {
+  queryRunner: QueryRunner,
+  idProducto: number,
+  idSucursal: number,
+  cantidad: number,
+): Promise<void> {
+
+  await this.validateFractionalMovement(idProducto, idSucursal, cantidad);
+
     const inventario = await queryRunner.manager.findOne(InventarioSucursal, {
       where: { idProducto, idSucursal },
     });
@@ -265,72 +304,66 @@ export class MovimientosInventariosService {
     idSucursalDestino: number,
     cantidad: number,
   ): Promise<void> {
+    // Validar movimiento fraccionado
+    await this.validateFractionalMovement(idProducto, idSucursalOrigen, cantidad);
+    await this.validateFractionalMovement(idProducto, idSucursalDestino, cantidad);
+  
+    // Obtener inventario en la sucursal de origen
     const inventarioOrigen = await queryRunner.manager.findOne(
       InventarioSucursal,
       {
         where: { idProducto, idSucursal: idSucursalOrigen },
       },
     );
-
+  
     if (!inventarioOrigen) {
       throw new NotFoundException(
         `Inventario no encontrado para producto ${idProducto} en sucursal origen ${idSucursalOrigen}`,
       );
     }
-
+  
+    // Verificar que hay suficiente stock en la sucursal origen
     if (inventarioOrigen.stockActual < cantidad) {
       throw new BadRequestException(
-        `Stock insuficiente para transferencia de producto ${idProducto}`,
+        `Stock insuficiente para transferir producto ${idProducto} desde la sucursal ${idSucursalOrigen}`,
       );
     }
-
-    if (
-      inventarioOrigen.stockActual - cantidad <
-      inventarioOrigen.stockMinimo
-    ) {
-      throw new BadRequestException(
-        `La transferencia dejará el stock origen por debajo del mínimo de ${inventarioOrigen.stockMinimo}`,
-      );
-    }
-
-    await queryRunner.manager.update(
-      InventarioSucursal,
-      { id: inventarioOrigen.id },
-      { stockActual: inventarioOrigen.stockActual - cantidad },
-    );
-
+  
+    // Obtener inventario en la sucursal de destino
     let inventarioDestino = await queryRunner.manager.findOne(
       InventarioSucursal,
       {
         where: { idProducto, idSucursal: idSucursalDestino },
       },
     );
-
+  
+    // Si no existe el inventario en la sucursal destino, crearlo
     if (!inventarioDestino) {
       inventarioDestino = this.inventarioRepository.create({
         idProducto,
         idSucursal: idSucursalDestino,
-        stockActual: 0,
-        stockMinimo: 0,
+        stockActual: 0, // Se actualizará después
       });
+  
       await queryRunner.manager.save(InventarioSucursal, inventarioDestino);
     }
-
-    if (
-      inventarioDestino.stockMaximo &&
-      inventarioDestino.stockActual + cantidad > inventarioDestino.stockMaximo
-    ) {
-      throw new BadRequestException(
-        `La transferencia excede el stock máximo permitido de ${inventarioDestino.stockMaximo}`,
-      );
-    }
-
+  
+    // Disminuir stock en la sucursal de origen
+    await queryRunner.manager.update(
+      InventarioSucursal,
+      { id: inventarioOrigen.id },
+      { stockActual: () => `ROUND(stock_actual - ${cantidad}, 2)` },
+    );
+  
+    // Aumentar stock en la sucursal de destino
     await queryRunner.manager.update(
       InventarioSucursal,
       { id: inventarioDestino.id },
-      { stockActual: inventarioDestino.stockActual + cantidad },
+      { stockActual: () => `ROUND(stock_actual + ${cantidad}, 2)` },
     );
-  }
+    
+    console.log(`Transferencia completada: ${cantidad} unidades de producto ${idProducto} de sucursal ${idSucursalOrigen} a sucursal ${idSucursalDestino}`);
+  }  
 
   private async generateDocumentReference(
     tipoMovimiento: string,
@@ -493,6 +526,12 @@ export class MovimientosInventariosService {
       if (movimiento.estado === 'CANCELADO') {
         throw new BadRequestException(`Movimiento ${id} ya está cancelado`);
       }
+
+      await this.validateFractionalMovement(
+        movimiento.idProducto, 
+        movimiento.idSucursal, 
+        movimiento.cantidad
+      );
   
       switch (movimiento.tipoMovimiento) {
         case 'entrada':
@@ -528,6 +567,21 @@ export class MovimientosInventariosService {
     queryRunner: QueryRunner, 
     movimiento: MovimientoInventario
   ) {
+    const inventario = await this.inventarioRepository.findOne({
+      where: { 
+        idProducto: movimiento.idProducto, 
+        idSucursal: movimiento.idSucursal 
+      }
+    });
+  
+    if (!inventario) {
+      throw new NotFoundException('Inventario no encontrado');
+    }
+  
+    if (inventario.stockActual - movimiento.cantidad < 0) {
+      throw new BadRequestException('La cancelación dejaría el stock en negativo');
+    }
+  
     await this.inventarioRepository.update(
       { idProducto: movimiento.idProducto, idSucursal: movimiento.idSucursal },
       { stockActual: () => `stock_actual - ${movimiento.cantidad}` }
@@ -554,6 +608,17 @@ export class MovimientosInventariosService {
     );
   
     if (movimiento.idSucursalDestino) {
+      const destinoInventario = await this.inventarioRepository.findOne({
+        where: { 
+          idProducto: movimiento.idProducto, 
+          idSucursal: movimiento.idSucursalDestino 
+        }
+      });
+  
+      if (destinoInventario && destinoInventario.stockActual - movimiento.cantidad < 0) {
+        throw new BadRequestException('La cancelación dejaría el stock destino en negativo');
+      }
+  
       await this.inventarioRepository.update(
         { 
           idProducto: movimiento.idProducto, 
