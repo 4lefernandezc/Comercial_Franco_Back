@@ -37,9 +37,12 @@ export class ConvertMonedaDto {
 }
 
 export class ConvertMonedaResponseDto {
-  @ApiProperty({
-    description: 'Array de montos convertidos a la moneda de destino',
-    example: [696.48, 1234.56]
-  })
   montosConvertidos: number[];
+  tasaConversion: number;
+  detalleConversion: {
+    monedaOrigen: string;
+    monedaDestino: string;
+    tasaOrigen: number;
+    tasaDestino: number;
+  };
 }

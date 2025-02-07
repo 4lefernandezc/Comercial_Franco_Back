@@ -180,11 +180,20 @@ export class MonedasService {
     try {
       // Si las monedas son iguales, retornar los mismos montos
       if (monedaOrigen.toUpperCase() === monedaDestino.toUpperCase()) {
-        return { montosConvertidos: montos.map(monto => Number(monto.toFixed(4))) };
+        return { 
+          montosConvertidos: montos.map(monto => Number(monto.toFixed(4))),
+          tasaConversion: 1,
+          detalleConversion: {
+            monedaOrigen: monedaOrigen.toUpperCase(),
+            monedaDestino: monedaDestino.toUpperCase(),
+            tasaOrigen: 1,
+            tasaDestino: 1
+          }
+        };
       }
-  
-      // Buscar las monedas usando el repositorio directamente
-      const [origen, destino] = await Promise.all([
+
+      // Buscar las monedas usando el repositorio
+      const [monedaOrig, monedaDest] = await Promise.all([
         this.monedasRepository.findOneBy({ 
           codigo: monedaOrigen.toUpperCase() 
         }),
@@ -192,37 +201,51 @@ export class MonedasService {
           codigo: monedaDestino.toUpperCase() 
         })
       ]);
-  
-      // Validar que se encontraron ambas monedas
-      if (!origen || !destino) {
+
+      // Validar que existan ambas monedas
+      if (!monedaOrig) {
         throw new NotFoundException(
-          'No se encontró una o ambas monedas especificadas'
+          `No se encontró la moneda de origen con código ${monedaOrigen}`
         );
       }
-  
-      // Validar que ambas monedas tengan tasa de cambio
-      if (origen.tasaCambioBase === null || destino.tasaCambioBase === null) {
+      if (!monedaDest) {
+        throw new NotFoundException(
+          `No se encontró la moneda de destino con código ${monedaDestino}`
+        );
+      }
+
+      // Validar tasas de cambio
+      if (monedaOrig.tasaCambioBase === null || monedaOrig.tasaCambioBase <= 0) {
         throw new BadRequestException(
-          'Una o ambas monedas no tienen tasa de cambio definida'
+          `La moneda ${monedaOrig.codigo} no tiene una tasa de cambio válida`
         );
       }
-  
-      // Convertir las tasas a números y validar
-      const tasaOrigen = Number(origen.tasaCambioBase);
-      const tasaDestino = Number(destino.tasaCambioBase);
-  
-      if (isNaN(tasaOrigen) || isNaN(tasaDestino) || tasaOrigen <= 0 || tasaDestino <= 0) {
+      if (monedaDest.tasaCambioBase === null || monedaDest.tasaCambioBase <= 0) {
         throw new BadRequestException(
-          'Las tasas de cambio no son válidas'
+          `La moneda ${monedaDest.codigo} no tiene una tasa de cambio válida`
         );
       }
-  
-      // Realizar la conversión con precisión de 4 decimales
-      const montosConvertidos = montos.map(monto => 
-        Number(((monto / tasaOrigen) / tasaDestino).toFixed(4)) 
-      );
-  
-      return { montosConvertidos };
+
+      const tasaOrigen = Number(monedaOrig.tasaCambioBase);
+      const tasaDestino = Number(monedaDest.tasaCambioBase);
+
+      // Realizar la conversión:
+      const montosConvertidos = montos.map(monto => {
+        const montoEnBase = monto * tasaOrigen;
+        const montoFinal = montoEnBase / tasaDestino;
+        return Number(montoFinal.toFixed(4));
+      });
+
+      return { 
+        montosConvertidos,
+        tasaConversion: Number((tasaOrigen / tasaDestino).toFixed(4)),
+        detalleConversion: {
+          monedaOrigen: monedaOrig.codigo,
+          monedaDestino: monedaDest.codigo,
+          tasaOrigen,
+          tasaDestino
+        }
+      };
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
