@@ -214,9 +214,9 @@ export class ProductosService {
       ...updateProductoDto,
       codigo: updateProductoDto.codigo?.trim(),
       nombre: updateProductoDto.nombre?.trim(),
-      descripcion: updateProductoDto.descripcion?.trim(),
+      descripcion: updateProductoDto.descripcion?.trim() || null,
       presentacion: updateProductoDto.presentacion?.trim(),
-      dimensiones: updateProductoDto.dimensiones?.trim(),
+      dimensiones: updateProductoDto.dimensiones?.trim() || null,
     });
   
     await this.productosRepository.save(updatedProducto);
