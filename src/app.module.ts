@@ -17,6 +17,7 @@ import { ComprasModule } from './compras/compras.module';
 import { CajasModule } from './cajas/cajas.module';
 import { MovimientosInventariosModule } from './movimientos_inventarios/movimientos_inventarios.module';
 import { TiposUnidadesModule } from './tipos_unidades/tipos_unidades.module';
+import { MonedasModule } from './monedas/monedas.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -45,6 +46,7 @@ import { TiposUnidadesModule } from './tipos_unidades/tipos_unidades.module';
     CajasModule,
     MovimientosInventariosModule,
     TiposUnidadesModule,
+    MonedasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
