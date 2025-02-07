@@ -1,8 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
+  IsDefined,
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -65,4 +67,9 @@ export class CreateProveedorDto {
   @IsNotEmpty({ message: 'El campo activo no debe ser vacío' })
   @IsBoolean({ message: 'El campo activo debe ser de tipo booleano' })
   readonly activo: boolean;
+
+  @ApiProperty()
+  @IsDefined({ message: 'El campo idMoneda debe estar definido' })
+  @IsNumber({}, { message: 'El campo idMoneda debe ser de tipo numérico' })
+  readonly idMoneda: number;
 }

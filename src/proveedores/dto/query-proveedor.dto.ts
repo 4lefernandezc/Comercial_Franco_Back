@@ -37,4 +37,8 @@ export class QueryProveedorDto extends GetPaginationSortParamsDto {
     return value === 'true' || value === true;
   })
   readonly activo?: boolean;
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  readonly idMoneda?: number;
 }

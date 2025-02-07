@@ -40,6 +40,8 @@ export class ProductosService {
     producto.codigo = createProductoDto.codigo.trim();
     producto.nombre = createProductoDto.nombre.trim();
     producto.descripcion = createProductoDto.descripcion?.trim() || null;
+    producto.presentacion = createProductoDto.presentacion.trim();
+    producto.dimensiones = createProductoDto.dimensiones?.trim()|| null;
     producto.precioCompra = createProductoDto.precioCompra;
     producto.precioVenta = createProductoDto.precioVenta;
     producto.activo = createProductoDto.activo;
@@ -55,6 +57,8 @@ export class ProductosService {
       codigo,
       nombre,
       descripcion,
+      presentacion,
+      dimensiones,
       precioCompra,
       precioVenta,
       idCategoria,
@@ -72,6 +76,8 @@ export class ProductosService {
       'productos.precioCompra',
       'productos.precioVenta',
       'productos.activo',
+      'productos.presentacion',
+      'productos.dimensiones',
       'productos.idCategoria',
       'productos.idProveedor',
       'productos.fechaCreacion',
@@ -97,6 +103,18 @@ export class ProductosService {
         descripcion: `%${descripcion}%`,
       });
     } 
+
+    if (presentacion) {
+      query.andWhere('productos.presentacion ILIKE :presentacion', {
+        presentacion: `%${presentacion}%`,
+      });
+    }
+
+    if (dimensiones) {
+      query.andWhere('productos.dimensiones ILIKE :dimensiones', {
+        dimensiones: `%${dimensiones}%`,
+      });
+    }
 
     if (precioCompra) {
       query.andWhere('productos.precioCompra = :precioCompra', {
@@ -197,6 +215,8 @@ export class ProductosService {
       codigo: updateProductoDto.codigo?.trim(),
       nombre: updateProductoDto.nombre?.trim(),
       descripcion: updateProductoDto.descripcion?.trim(),
+      presentacion: updateProductoDto.presentacion?.trim(),
+      dimensiones: updateProductoDto.dimensiones?.trim(),
     });
   
     await this.productosRepository.save(updatedProducto);

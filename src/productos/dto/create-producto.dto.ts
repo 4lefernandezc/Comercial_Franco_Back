@@ -35,6 +35,22 @@ export class CreateProductoDto {
   readonly descripcion?: string;
 
   @ApiProperty()
+  @IsNotEmpty({ message: 'El campo presentación es obligatorio' })
+  @IsString({ message: 'El campo presentación debe ser de tipo cadena' })
+  @MaxLength(150, {
+    message: 'El campo presentación no debe ser mayor a 150 caracteres',
+  })
+  readonly presentacion: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString({ message: 'El campo dimensiones debe ser de tipo cadena' })
+  @MaxLength(50, {
+    message: 'El campo dimensiones no debe ser mayor a 50 caracteres',
+  })
+  readonly dimensiones?: string;
+
+  @ApiProperty()
   @IsDefined({ message: 'El campo id_categoria debe estar definido' })
   @IsNumber({}, { message: 'El campo id_categoria debe ser de tipo numérico' })
   readonly idCategoria: number;

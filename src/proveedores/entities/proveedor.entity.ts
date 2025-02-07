@@ -1,9 +1,12 @@
 import { Compra } from 'src/compras/entities/compra.entity';
+import { Moneda } from 'src/monedas/entities/moneda.entity';
 import { Producto } from 'src/productos/entities/producto.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -35,6 +38,9 @@ export class Proveedor {
   @Column('boolean', { default: true })
   activo: boolean;
 
+  @Column('integer', { name: 'id_moneda' })
+  idMoneda: number;
+
   @CreateDateColumn({ name: 'fecha_creacion' })
   fechaCreacion: Date;
 
@@ -46,4 +52,8 @@ export class Proveedor {
 
   @OneToMany(() => Compra, (compra) => compra.sucursal)
   compras: Compra[];
+
+  @ManyToOne(() => Moneda, (moneda) => moneda.proveedores)
+  @JoinColumn({ name: 'id_moneda', referencedColumnName: 'id' })
+  moneda: Moneda;
 }

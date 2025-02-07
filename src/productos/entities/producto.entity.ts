@@ -29,6 +29,12 @@ export class Producto {
   @Column('varchar', { length: 250, nullable: true })
   descripcion?: string;
 
+  @Column('varchar', { length: 150 })
+  presentacion: string;
+
+  @Column('varchar', { length: 50, nullable: true })
+  dimensiones?: string;
+
   @Column('decimal', { precision: 10, scale: 2, name: 'precio_compra' })
   precioCompra: number;
 

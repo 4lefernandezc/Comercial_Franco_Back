@@ -19,6 +19,16 @@ export class QueryProductoDto extends GetPaginationSortParamsDto {
   @IsString()
   readonly descripcion?: string;
 
+  @ApiPropertyOptional({ example: 'Caja' })
+  @IsOptional()
+  @IsString()
+  readonly presentacion?: string;
+
+  @ApiPropertyOptional({ example: '10x10x10' })
+  @IsOptional()
+  @IsString()
+  readonly dimensiones?: string;
+
   @ApiPropertyOptional({ example: 100 })
   @IsOptional()
   readonly precioCompra?: number;
