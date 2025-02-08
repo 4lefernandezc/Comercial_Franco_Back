@@ -12,6 +12,10 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { Rol } from 'src/roles/entities/rol.entity';
 import { Sucursal } from 'src/sucursales/entities/sucursal.entity';
 import { QueryUsuarioDto } from './dto/query-usuario.dto';
+import { MovimientoInventario } from 'src/movimientos_inventarios/entities/movimientos_inventario.entity';
+import { Caja } from 'src/cajas/entities/caja.entity';
+import { Compra } from 'src/compras/entities/compra.entity';
+import { Venta } from 'src/ventas/entities/venta.entity';
 
 @Injectable()
 export class UsuariosService {
@@ -22,6 +26,14 @@ export class UsuariosService {
     private rolesRepository: Repository<Rol>,
     @InjectRepository(Sucursal)
     private sucursalesRepository: Repository<Sucursal>,
+    @InjectRepository(MovimientoInventario)
+    private movimientosRepository: Repository<MovimientoInventario>,
+    @InjectRepository(Caja)
+    private cajasRepository: Repository<Caja>,
+    @InjectRepository(Compra)
+    private comprasRepository: Repository<Compra>,
+    @InjectRepository(Venta)
+    private ventasRepository: Repository<Venta>,
   ) {}
 
   async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
@@ -194,8 +206,37 @@ export class UsuariosService {
   
   async remove(id: number): Promise<{ message: string }> {
     const usuario = await this.findOne(id);
+
+    await this.checkRelations(id);
+
     await this.usuariosRepository.remove(usuario);
     return { message: 'Usuario eliminado correctamente' };
+  }
+
+  private async checkRelations(id: number): Promise<void> {
+    const relations = [
+      { repository: this.comprasRepository, entity: 'Compras', field: 'usuario' },
+      { repository: this.ventasRepository, entity: 'Ventas', field: 'usuario' },
+      { repository: this.movimientosRepository, entity: 'Movimientos de Inventarios', field: 'usuario' },
+      { repository: this.cajasRepository, entity: 'Apertura de Cajas', field: 'usuarioApertura' },
+      { repository: this.cajasRepository, entity: 'Cierre de Cajas', field: 'usuarioCierre' },
+    ];
+
+    for (const relation of relations) {
+      const count = await relation.repository.count({
+        where: {
+          [relation.field]: { id }
+        },
+      });
+
+      console.log(`Checking ${relation.entity}: ${count} records found`);
+
+      if (count > 0) {
+        throw new ConflictException(
+          `No se puede eliminar el usuario porque está relacionado con ${relation.entity}`
+        );
+      }
+    }
   }
 
   async validate(usuario: string, clave: string): Promise<Usuario> {

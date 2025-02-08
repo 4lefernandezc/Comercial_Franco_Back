@@ -213,7 +213,7 @@ export class SucursalesService {
 
     for (const relation of relations) {
       const count = await relation.repository.count({
-        where: { [relation.field]: id },
+        where: { [relation.field]: { id } },
       });
 
       if (count > 0) {
