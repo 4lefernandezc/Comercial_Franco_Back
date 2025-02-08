@@ -1,20 +1,24 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Cliente } from './entities/cliente.entity';
-import { Repository } from 'typeorm';
 import { QueryClienteDto } from './dto/query-cliente.dto';
+import { Venta } from 'src/ventas/entities/venta.entity';
+import { Cliente } from './entities/cliente.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ClientesService {
   constructor(
     @InjectRepository(Cliente)
     private clientesRepository: Repository<Cliente>,
+    @InjectRepository(Venta)
+    private ventasRepository: Repository<Venta>,
   ) {}
 
   async create(createClienteDto: CreateClienteDto): Promise<Cliente> {
@@ -166,10 +170,23 @@ export class ClientesService {
     };
   }
   
-  async remove(id: number): Promise<{ message: string; cliente: Cliente }> {
+  async remove(id: number): Promise<{ message: string; cliente?: Cliente }> {
     const cliente = await this.findOne(id);
-    await this.clientesRepository.remove(cliente);
 
+    // Verificamos si hay ventas relacionadas al cliente
+    const ventasCount = await this.ventasRepository.count({
+      where: {
+        cliente: { id }
+      }
+    });
+
+    if (ventasCount > 0) {
+      throw new ConflictException(
+        'No se puede eliminar el cliente porque está relacionado con una o más ventas',
+      );
+    }
+
+    await this.clientesRepository.remove(cliente);
     return {
       message: 'El cliente ha sido eliminado exitosamente',
       cliente: cliente,
