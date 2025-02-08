@@ -1,20 +1,27 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedore.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Proveedor } from './entities/proveedor.entity';
-import { Repository } from 'typeorm';
 import { QueryProveedorDto } from './dto/query-proveedor.dto';
+import { Producto } from 'src/productos/entities/producto.entity';
+import { Compra } from 'src/compras/entities/compra.entity';
+import { Proveedor } from './entities/proveedor.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProveedoresService {
   constructor(
     @InjectRepository(Proveedor)
     private proveedoresRepository: Repository<Proveedor>,
+    @InjectRepository(Producto)
+    private productosRepository: Repository<Producto>,
+    @InjectRepository(Compra)
+    private comprasRepository: Repository<Compra>,
   ) {}
 
   async create(createProveedorDto: CreateProveedorDto): Promise<Proveedor> {
@@ -208,12 +215,42 @@ export class ProveedoresService {
     };
   }
 
-  async remove(id: number): Promise<{ message: string; proveedor: Proveedor }> {
+  async remove(id: number): Promise<{ message: string; proveedor?: Proveedor }> {
     const proveedor = await this.findOne(id);
+
+    // Verificamos si hay relaciones con productos o compras
+    await this.checkRelations(id);
+
     await this.proveedoresRepository.remove(proveedor);
     return {
       message: 'El proveedor ha sido eliminado exitosamente',
       proveedor: proveedor,
     };
+  }
+
+  private async checkRelations(id: number): Promise<void> {
+    const productosCount = await this.productosRepository.count({
+      where: {
+        proveedor: { id }
+      }
+    });
+
+    if (productosCount > 0) {
+      throw new ConflictException(
+        'No se puede eliminar el proveedor porque está relacionado con uno o más productos',
+      );
+    }
+
+    const comprasCount = await this.comprasRepository.count({
+      where: {
+        proveedor: { id }
+      }
+    });
+
+    if (comprasCount > 0) {
+      throw new ConflictException(
+        'No se puede eliminar el proveedor porque está relacionado con una o más compras',
+      );
+    }
   }
 }
