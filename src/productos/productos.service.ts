@@ -6,17 +6,29 @@ import {
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Producto } from './entities/producto.entity';
 import { Categoria } from '../categorias/entities/categoria.entity';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 import { QueryProductoDto } from './dto/query-producto.dto';
+import { DetalleVenta } from 'src/ventas/entities/detalle_venta.entity';
+import { DetalleCompra } from 'src/compras/entities/detalle_compra.entity';
+import { InventarioSucursal } from 'src/inventarios_sucursales/entities/inventario_sucursal.entity';
+import { MovimientoInventario } from 'src/movimientos_inventarios/entities/movimientos_inventario.entity';
 
 @Injectable()
 export class ProductosService {
   constructor(
     @InjectRepository(Producto)
     private productosRepository: Repository<Producto>,
+    @InjectRepository(DetalleVenta)
+    private detalleVentasRepository: Repository<DetalleVenta>,
+    @InjectRepository(DetalleCompra)
+    private detallesCompraRepository: Repository<DetalleCompra>,
+    @InjectRepository(InventarioSucursal)
+    private inventariosRepository: Repository<InventarioSucursal>,
+    @InjectRepository(MovimientoInventario)
+    private movimientosRepository: Repository<MovimientoInventario>,
   ) {}
 
   async create(createProductoDto: CreateProductoDto): Promise<Producto> {
@@ -229,10 +241,34 @@ export class ProductosService {
 
   async remove(id: number): Promise<{ message: string; producto: Producto }> {
     const producto = await this.findOne(id);
+
+    await this.checkRelations(id);
+
     await this.productosRepository.remove(producto);
     return {
       message: 'Producto eliminado exitosamente',
       producto,
     };
+  }
+
+  private async checkRelations(id: number): Promise<void> {
+    const relations = [
+      { repository: this.detalleVentasRepository, entity: 'detalles de ventas' },
+      { repository: this.inventariosRepository, entity: 'inventarios' },
+      { repository: this.detallesCompraRepository, entity: 'detalles de compras' },
+      { repository: this.movimientosRepository, entity: 'movimientos de inventarios' },
+    ];
+
+    for (const relation of relations) {
+      const count = await relation.repository.count({
+        where: { producto: { id } },
+      });
+
+      if (count > 0) {
+        throw new ConflictException(
+          `No se puede eliminar el producto porque está relacionado con uno o más ${relation.entity}`
+        );
+      }
+    }
   }
 }
