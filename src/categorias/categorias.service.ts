@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,12 +10,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Categoria } from './entities/categoria.entity';
 import { Repository } from 'typeorm';
 import { QueryCategoriaDto } from './dto/query-categoria.dto';
+import { Producto } from 'src/productos/entities/producto.entity';
 
 @Injectable()
 export class CategoriasService {
   constructor(
     @InjectRepository(Categoria)
     private categoriasRepository: Repository<Categoria>,
+    @InjectRepository(Producto)
+    private productosRepository: Repository<Producto>,
   ) {}
 
   async create(createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
@@ -110,8 +114,22 @@ export class CategoriasService {
     };
   }
   
-  async remove(id: number): Promise<{ message: string; categoria: Categoria }> {
+  async remove(id: number): Promise<{ message: string; categoria?: Categoria }> {
     const categoria = await this.findOne(id);
+
+    // Verificamos si hay productos relacionados a la categoria
+    const productosCount = await this.productosRepository.count({
+      where: {
+        categoria: { id }
+      }
+    });
+
+    if (productosCount > 0) {
+      throw new ConflictException(
+        'No se puede eliminar la categoria porque está relacionada con uno o más productos',
+      );
+    }
+
     await this.categoriasRepository.remove(categoria);
     return {
       message: 'La categoria ha sido eliminada exitosamente',
