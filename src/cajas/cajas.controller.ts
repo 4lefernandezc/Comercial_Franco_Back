@@ -41,4 +41,25 @@ export class CajasController {
   async obtenerCajaActual(@Param('idSucursal', ParseIntPipe) idSucursal: number) {
     return this.cajasService.obtenerCajaActual(idSucursal);
   }
+
+  @Get(':id/ventas')
+  @ApiResponse({ status: 200, description: 'Ventas de la caja' })
+  @ApiResponse({ status: 404, description: 'Caja no encontrada' })
+  async obtenerVentasCaja(@Param('id', ParseIntPipe) id: number) {
+    return this.cajasService.obtenerVentasCaja(id);
+  }
+
+  @Get(':id/compras')
+  @ApiResponse({ status: 200, description: 'compras de la caja' })
+  @ApiResponse({ status: 404, description: 'Caja no encontrada' })
+  async obtenerComprasCaja(@Param('id', ParseIntPipe) id: number) {
+    return this.cajasService.obtenerComprasCaja(id);
+  }
+
+  @Get(':id/movimientos')
+  @ApiResponse({ status: 200, description: 'Movimientos de la caja' })
+  @ApiResponse({ status: 404, description: 'Caja no encontrada' })
+  async obtenerMovimientosCaja(@Param('id', ParseIntPipe) id: number) {
+    return this.cajasService.obtenerMovimientosCaja(id);
+  }
 }

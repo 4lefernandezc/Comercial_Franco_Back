@@ -29,6 +29,8 @@ export class CajasService {
     private readonly sucursalRepository: Repository<Sucursal>,
   ) {}
 
+  // TODO: Implementar validacion solo una caja por dia en una sucursal
+
   async abrirCaja(createCajaDto: CreateCajaDto): Promise<Caja> {
     // Verificar si ya existe una caja abierta para la sucursal
     const cajaAbierta = await this.cajaRepository.findOne({
@@ -319,5 +321,43 @@ export class CajasService {
       page,
       pageCount: Math.ceil(total / limit),
     };
+  }
+
+  async obtenerVentasCaja(idCaja: number) {
+    const ventas = await this.ventaRepository.find({
+      where: {
+        caja: { id: idCaja },
+      },
+      relations: ['detalles'],
+    });
+    return ventas;
+  }
+
+  async obtenerComprasCaja(idCaja: number) {
+    const compras = await this.compraRepository.find({
+      where: {
+        caja: { id: idCaja },
+      },
+      relations: ['detalles'],
+    });
+    return compras;
+  }
+
+  async obtenerMovimientosCaja(idCaja: number) {
+    const ventas = await this.ventaRepository.find({
+      where: {
+        caja: { id: idCaja },
+      },
+      relations: ['detalles'],
+    });
+
+    const compras = await this.compraRepository.find({
+      where: {
+        caja: { id: idCaja },
+      },
+      relations: ['detalles'],
+    });
+
+    return { ventas, compras };
   }
 }
