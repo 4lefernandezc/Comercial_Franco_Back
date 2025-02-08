@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Sucursal } from './entities/sucursal.entity';
 import { Repository } from 'typeorm';
+import { InventarioSucursal } from 'src/inventarios_sucursales/entities/inventario_sucursal.entity';
+import { Venta } from 'src/ventas/entities/venta.entity';
+import { Compra } from 'src/compras/entities/compra.entity';
+import { Caja } from 'src/cajas/entities/caja.entity';
+import { MovimientoInventario } from 'src/movimientos_inventarios/entities/movimientos_inventario.entity';
 
 @Injectable()
 export class SucursalesService {
@@ -18,6 +24,16 @@ export class SucursalesService {
     private sucursalesRepository: Repository<Sucursal>,
     @InjectRepository(Usuario)
     private usuariosRepository: Repository<Usuario>,
+    @InjectRepository(InventarioSucursal)
+    private inventariosRepository: Repository<InventarioSucursal>,
+    @InjectRepository(Venta)
+    private ventasRepository: Repository<Venta>,
+    @InjectRepository(Compra)
+    private comprasRepository: Repository<Compra>,
+    @InjectRepository(Caja)
+    private cajasRepository: Repository<Caja>,
+    @InjectRepository(MovimientoInventario)
+    private movimientosRepository: Repository<MovimientoInventario>,
   ) {}
 
   async create(createSucursalDto: CreateSucursalDto): Promise<Sucursal> {
@@ -172,21 +188,9 @@ export class SucursalesService {
   }  
 
   async remove(id: number): Promise<{ message: string; sucursal?: Sucursal }> {
-    const sucursal = await this.sucursalesRepository.findOne({ where: { id } });
+    const sucursal = await this.findOne(id);
 
-    if (!sucursal) {
-      throw new NotFoundException(`La sucursal con ID ${id} no existe.`);
-    }
-
-    const usuariosAsociados = await this.usuariosRepository.count({
-      where: { sucursalId: id },
-    });
-
-    if (usuariosAsociados > 0) {
-      throw new BadRequestException(
-        `La sucursal con ID ${id} no puede ser eliminada porque tiene usuarios asociados.`,
-      );
-    }
+    await this.checkRelations(id);
 
     await this.sucursalesRepository.remove(sucursal);
 
@@ -194,5 +198,29 @@ export class SucursalesService {
       message: 'La sucursal ha sido eliminada exitosamente',
       sucursal,
     };
+  }
+
+  private async checkRelations(id: number): Promise<void> {
+    const relations = [
+      { repository: this.ventasRepository, entity: 'ventas', field: 'sucursal' },
+      { repository: this.comprasRepository, entity: 'compras', field: 'sucursal' },
+      { repository: this.usuariosRepository, entity: 'usuarios', field: 'sucursalId' },
+      { repository: this.inventariosRepository, entity: 'inventarios', field: 'idSucursal' },
+      { repository: this.cajasRepository, entity: 'cajas', field: 'sucursal' },
+      { repository: this.movimientosRepository, entity: 'movimientos de inventarios', field: 'idSucursal' },
+      { repository: this.movimientosRepository, entity: 'movimientos de inventarios', field: 'idSucursalDestino' },
+    ];
+
+    for (const relation of relations) {
+      const count = await relation.repository.count({
+        where: { [relation.field]: id },
+      });
+
+      if (count > 0) {
+        throw new ConflictException(
+          `No se puede eliminar la sucursal porque está relacionada con ${relation.entity}`
+        );
+      }
+    }
   }
 }
