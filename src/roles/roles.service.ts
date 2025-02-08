@@ -1,20 +1,24 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateRolDto } from './dto/create-rol.dto';
 import { UpdateRolDto } from './dto/update-rol.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+import { QueryRolDto } from './dto/query-rol.dto';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Rol } from './entities/rol.entity';
 import { Repository } from 'typeorm';
-import { QueryRolDto } from './dto/query-rol.dto';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class RolesService {
   constructor(
     @InjectRepository(Rol)
     private rolesRepository: Repository<Rol>,
+    @InjectRepository(Usuario)
+    private usuariosRepository: Repository<Usuario>,
   ) {}
 
   async create(createRolDto: CreateRolDto): Promise<Rol> {
@@ -117,8 +121,22 @@ export class RolesService {
     };
   }
   
-  async remove(id: number): Promise<{ message: string; rol: Rol }> {
+  async remove(id: number): Promise<{ message: string; rol?: Rol }> {
     const rol = await this.findOne(id);
+
+    // Verificamos si hay usuarios relacionados al rol
+    const usuariosCount = await this.usuariosRepository.count({
+      where: {
+        rol: { id }
+      }
+    });
+
+    if (usuariosCount > 0) {
+      throw new ConflictException(
+        'No se puede eliminar el rol porque está relacionado con uno o más usuarios',
+      );
+    }
+
     await this.rolesRepository.remove(rol);
     return {
       message: 'El rol ha sido eliminado exitosamente',
