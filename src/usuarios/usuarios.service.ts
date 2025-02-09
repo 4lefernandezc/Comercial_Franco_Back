@@ -229,8 +229,6 @@ export class UsuariosService {
         },
       });
 
-      console.log(`Checking ${relation.entity}: ${count} records found`);
-
       if (count > 0) {
         throw new ConflictException(
           `No se puede eliminar el usuario porque está relacionado con ${relation.entity}`

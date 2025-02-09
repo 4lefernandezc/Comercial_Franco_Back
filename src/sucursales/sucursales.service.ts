@@ -202,25 +202,30 @@ export class SucursalesService {
 
   private async checkRelations(id: number): Promise<void> {
     const relations = [
-      { repository: this.ventasRepository, entity: 'ventas', field: 'sucursal' },
-      { repository: this.comprasRepository, entity: 'compras', field: 'sucursal' },
-      { repository: this.usuariosRepository, entity: 'usuarios', field: 'sucursalId' },
-      { repository: this.inventariosRepository, entity: 'inventarios', field: 'idSucursal' },
-      { repository: this.cajasRepository, entity: 'cajas', field: 'sucursal' },
-      { repository: this.movimientosRepository, entity: 'movimientos de inventarios', field: 'idSucursal' },
-      { repository: this.movimientosRepository, entity: 'movimientos de inventarios', field: 'idSucursalDestino' },
+      // Relaciones con objetos
+      { repository: this.ventasRepository, entity: 'ventas', field: 'sucursal', isRelation: true },
+      { repository: this.comprasRepository, entity: 'compras', field: 'sucursal', isRelation: true },
+      { repository: this.cajasRepository, entity: 'cajas', field: 'sucursal', isRelation: true },
+      
+      // Campos de ID directo
+      { repository: this.usuariosRepository, entity: 'usuarios', field: 'sucursalId', isRelation: false },
+      { repository: this.inventariosRepository, entity: 'inventarios', field: 'idSucursal', isRelation: false },
+      { repository: this.movimientosRepository, entity: 'movimientos de inventarios', field: 'idSucursal', isRelation: false },
+      { repository: this.movimientosRepository, entity: 'movimientos de inventarios', field: 'idSucursalDestino', isRelation: false },
     ];
 
     for (const relation of relations) {
-      const count = await relation.repository.count({
-        where: { [relation.field]: { id } },
-      });
+        const count = await relation.repository.count({
+          where: relation.isRelation 
+            ? { [relation.field]: { id } }
+            : { [relation.field]: id }
+        });
 
-      if (count > 0) {
-        throw new ConflictException(
-          `No se puede eliminar la sucursal porque está relacionada con ${relation.entity}`
-        );
+        if (count > 0) {
+          throw new ConflictException(
+            `No se puede eliminar la sucursal porque está relacionada con ${relation.entity}`
+          );
+        }
       }
-    }
   }
 }

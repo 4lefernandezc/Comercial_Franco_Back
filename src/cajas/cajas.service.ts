@@ -108,16 +108,12 @@ export class CajasService {
         },
       });
 
-      console.log('Ventas encontradas:', ventas); // Para debugging
-
       const compras = await this.compraRepository.find({
         where: {
           caja: { id: idCaja },
           estado: 'completada',
         },
       });
-
-      console.log('Compras encontradas:', compras); // Para debugging
 
       // Calculamos el total de ingresos sumando las ventas
       const totalIngresos = ventas.reduce((sum, venta) => {
@@ -129,19 +125,9 @@ export class CajasService {
         return sum + parseFloat(compra.totalCompra.toString());
       }, 0);
 
-      console.log('Total ingresos calculados:', totalIngresos); // Para debugging
-      console.log('Total egresos calculados:', totalEgresos); // Para debugging
-
       // Calcular monto final correctamente
       const montoInicial = parseFloat(caja.montoInicial.toString());
       const montoFinal = montoInicial + totalIngresos - totalEgresos;
-
-      console.log('Cálculo de monto final:', {
-        montoInicial,
-        totalIngresos,
-        totalEgresos,
-        montoFinal,
-      });
 
       // Actualizamos la caja usando el queryRunner
       await queryRunner.manager.update(Caja, idCaja, {

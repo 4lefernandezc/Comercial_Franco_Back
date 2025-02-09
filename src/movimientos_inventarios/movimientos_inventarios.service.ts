@@ -361,8 +361,6 @@ export class MovimientosInventariosService {
       { id: inventarioDestino.id },
       { stockActual: () => `ROUND(stock_actual + ${cantidad}, 2)` },
     );
-    
-    console.log(`Transferencia completada: ${cantidad} unidades de producto ${idProducto} de sucursal ${idSucursalOrigen} a sucursal ${idSucursalDestino}`);
   }  
 
   private async generateDocumentReference(
