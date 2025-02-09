@@ -26,9 +26,6 @@ export class Producto {
   @Column('varchar', { length: 100 })
   nombre: string;
 
-  @Column('varchar', { length: 250, nullable: true })
-  descripcion?: string;
-
   @Column('varchar', { length: 150 })
   presentacion: string;
 

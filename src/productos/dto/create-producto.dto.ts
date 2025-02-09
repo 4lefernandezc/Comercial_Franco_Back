@@ -27,14 +27,6 @@ export class CreateProductoDto {
   readonly nombre: string;
 
   @ApiProperty()
-  @IsOptional()
-  @IsString({ message: 'El campo descripción debe ser de tipo cadena' })
-  @MaxLength(255, {
-    message: 'El campo descripción no debe ser mayor a 255 caracteres',
-  })
-  readonly descripcion?: string;
-
-  @ApiProperty()
   @IsNotEmpty({ message: 'El campo presentación es obligatorio' })
   @IsString({ message: 'El campo presentación debe ser de tipo cadena' })
   @MaxLength(150, {

@@ -1,16 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { CreateTipoUnidadDto } from './dto/create-tipo_unidad.dto';
 import { UpdateTipoUnidadDto } from './dto/update-tipo_unidad.dto';
 import { QueryTipoUnidadDto } from './dto/query-tipo_unidad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TipoUnidad } from './entities/tipo_unidad.entity';
 import { Repository } from 'typeorm';
+import { InventarioSucursal } from 'src/inventarios_sucursales/entities/inventario_sucursal.entity';
 
 @Injectable()
 export class TiposUnidadesService {
   constructor(
     @InjectRepository(TipoUnidad)
     private tipoUnidadRepository: Repository<TipoUnidad>,
+    @InjectRepository(InventarioSucursal)
+    private inventariosRepository: Repository<InventarioSucursal>,
   ) {}
 
   async create(createTipoUnidadDto: CreateTipoUnidadDto): Promise<TipoUnidad> {
@@ -120,6 +123,18 @@ export class TiposUnidadesService {
 
   async remove(id: number): Promise<{ message: string; tipoUnidad: TipoUnidad }> {
     const tipoUnidad = await this.findOne(id);
+
+    // Verificamos si hay inventarios relacionados al tipo de unidad
+    const relatedInventariosCount = await this.inventariosRepository.count({
+      where: {
+        tipoUnidad: { id }
+      }
+    });
+
+    if (relatedInventariosCount > 0) {
+      throw new ConflictException('No se puede eliminar el tipo de unidad porque porque está relacionado con uno o más inventarios');
+    }
+
     await this.tipoUnidadRepository.remove(tipoUnidad);
     return {
       message: 'El tipo de unidad ha sido eliminado exitosamente',

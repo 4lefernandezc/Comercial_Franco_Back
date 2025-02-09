@@ -51,7 +51,6 @@ export class ProductosService {
     const producto = new Producto();
     producto.codigo = createProductoDto.codigo.trim();
     producto.nombre = createProductoDto.nombre.trim();
-    producto.descripcion = createProductoDto.descripcion?.trim() || null;
     producto.presentacion = createProductoDto.presentacion.trim();
     producto.dimensiones = createProductoDto.dimensiones?.trim()|| null;
     producto.precioCompra = createProductoDto.precioCompra;
@@ -68,7 +67,6 @@ export class ProductosService {
       limit,
       codigo,
       nombre,
-      descripcion,
       presentacion,
       dimensiones,
       precioCompra,
@@ -84,7 +82,6 @@ export class ProductosService {
       'productos.id',
       'productos.codigo',
       'productos.nombre',
-      'productos.descripcion',
       'productos.precioCompra',
       'productos.precioVenta',
       'productos.activo',
@@ -109,12 +106,6 @@ export class ProductosService {
         nombre: `%${nombre}%`,
       });
     }
-
-    if (descripcion) {
-      query.andWhere('productos.descripcion ILIKE :descripcion', {
-        descripcion: `%${descripcion}%`,
-      });
-    } 
 
     if (presentacion) {
       query.andWhere('productos.presentacion ILIKE :presentacion', {
@@ -226,7 +217,6 @@ export class ProductosService {
       ...updateProductoDto,
       codigo: updateProductoDto.codigo?.trim(),
       nombre: updateProductoDto.nombre?.trim(),
-      descripcion: updateProductoDto.descripcion?.trim() || null,
       presentacion: updateProductoDto.presentacion?.trim(),
       dimensiones: updateProductoDto.dimensiones?.trim() || null,
     });
