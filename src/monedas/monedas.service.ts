@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -10,13 +11,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Moneda } from './entities/moneda.entity';
 import { Repository, DataSource } from 'typeorm';
 import { QueryMonedaDto } from './dto/query-moneda.dto';
-import { ConvertMonedaDto, ConvertMonedaResponseDto } from './dto/convert-moneda.dto';
+import {
+  ConvertMonedaDto,
+  ConvertMonedaResponseDto,
+} from './dto/convert-moneda.dto';
+import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 
 @Injectable()
 export class MonedasService {
   constructor(
     @InjectRepository(Moneda)
     private monedasRepository: Repository<Moneda>,
+    @InjectRepository(Proveedor)
+    private proveedoresRepository: Repository<Proveedor>,
     private dataSource: DataSource,
   ) {}
 
@@ -62,33 +69,53 @@ export class MonedasService {
   }
 
   async findAll(q: QueryMonedaDto) {
-    try {
-      const { page = 1, limit = 10, nombre, sidx = 'id', sord = 'ASC' } = q;
-      const query = this.monedasRepository
-        .createQueryBuilder('monedas')
-        .select();
+    const { page, limit, codigo, nombre, simbolo, sidx, sord } = q;
+    const query = this.monedasRepository
+      .createQueryBuilder('monedas')
+      .select([
+        'monedas.id',
+        'monedas.codigo',
+        'monedas.nombre',
+        'monedas.simbolo',
+        'monedas.esPrincipal',
+        'monedas.tasaCambioBase',
+        'monedas.fechaCreacion',
+        'monedas.fechaModificacion',
+      ]);
 
-      if (nombre) {
-        query.andWhere('monedas.nombre ILIKE :nombre', {
-          nombre: `%${nombre}%`,
-        });
-      }
-
-      const [result, total] = await query
-        .orderBy(`monedas.${sidx}`, sord)
-        .skip((page - 1) * limit)
-        .take(limit)
-        .getManyAndCount();
-
-      return {
-        data: result,
-        total,
-        page,
-        pageCount: Math.ceil(total / limit),
-      };
-    } catch (error) {
-      throw new InternalServerErrorException('Error al obtener las monedas');
+    if (codigo) {
+      query.andWhere('monedas.codigo ILIKE :codigo', {
+        codigo: `%${codigo}%`,
+      });
     }
+
+    if (nombre) {
+      query.andWhere('monedas.nombre ILIKE :nombre', {
+        nombre: `%${nombre}%`,
+      });
+    }
+
+    if (simbolo) {
+      query.andWhere('monedas.simbolo ILIKE :simbolo', {
+        simbolo: `%${simbolo}%`,
+      });
+    }
+
+    if (sidx) {
+      query.orderBy(`monedas.${sidx}`, sord);
+    }
+
+    const [result, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: result,
+      total,
+      page,
+      pageCount: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number): Promise<Moneda> {
@@ -141,7 +168,10 @@ export class MonedasService {
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al actualizar la moneda');
@@ -151,25 +181,27 @@ export class MonedasService {
   }
 
   async remove(id: number): Promise<{ message: string; moneda: Moneda }> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const moneda = await this.findOne(id);
 
-    try {
-      const moneda = await this.findOne(id);
-      await queryRunner.manager.remove(moneda);
-      await queryRunner.commitTransaction();
+    // Verificamos si hay proveedores relacionados a la moneda
+    const proveedoresCount = await this.proveedoresRepository.count({
+      where: {
+        moneda: { id },
+      },
+    });
 
-      return {
-        message: 'La moneda ha sido eliminada exitosamente',
-        moneda,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('Error al eliminar la moneda');
-    } finally {
-      await queryRunner.release();
+    if (proveedoresCount > 0) {
+      throw new ConflictException(
+        'No se puede eliminar la moneda porque está relacionada con uno o más proveedores',
+      );
     }
+
+    await this.monedasRepository.remove(moneda);
+
+    return {
+      message: 'La moneda ha sido eliminada exitosamente',
+      moneda,
+    };
   }
 
   async convertirMoneda({
@@ -180,49 +212,55 @@ export class MonedasService {
     try {
       // Si las monedas son iguales, retornar los mismos montos
       if (monedaOrigen.toUpperCase() === monedaDestino.toUpperCase()) {
-        return { 
-          montosConvertidos: montos.map(monto => Number(monto.toFixed(4))),
+        return {
+          montosConvertidos: montos.map((monto) => Number(monto.toFixed(2))),
           tasaConversion: 1,
           detalleConversion: {
             monedaOrigen: monedaOrigen.toUpperCase(),
             monedaDestino: monedaDestino.toUpperCase(),
             tasaOrigen: 1,
-            tasaDestino: 1
-          }
+            tasaDestino: 1,
+          },
         };
       }
 
       // Buscar las monedas usando el repositorio
       const [monedaOrig, monedaDest] = await Promise.all([
-        this.monedasRepository.findOneBy({ 
-          codigo: monedaOrigen.toUpperCase() 
+        this.monedasRepository.findOneBy({
+          codigo: monedaOrigen.toUpperCase(),
         }),
-        this.monedasRepository.findOneBy({ 
-          codigo: monedaDestino.toUpperCase() 
-        })
+        this.monedasRepository.findOneBy({
+          codigo: monedaDestino.toUpperCase(),
+        }),
       ]);
 
       // Validar que existan ambas monedas
       if (!monedaOrig) {
         throw new NotFoundException(
-          `No se encontró la moneda de origen con código ${monedaOrigen}`
+          `No se encontró la moneda de origen con código ${monedaOrigen}`,
         );
       }
       if (!monedaDest) {
         throw new NotFoundException(
-          `No se encontró la moneda de destino con código ${monedaDestino}`
+          `No se encontró la moneda de destino con código ${monedaDestino}`,
         );
       }
 
       // Validar tasas de cambio
-      if (monedaOrig.tasaCambioBase === null || monedaOrig.tasaCambioBase <= 0) {
+      if (
+        monedaOrig.tasaCambioBase === null ||
+        monedaOrig.tasaCambioBase <= 0
+      ) {
         throw new BadRequestException(
-          `La moneda ${monedaOrig.codigo} no tiene una tasa de cambio válida`
+          `La moneda ${monedaOrig.codigo} no tiene una tasa de cambio válida`,
         );
       }
-      if (monedaDest.tasaCambioBase === null || monedaDest.tasaCambioBase <= 0) {
+      if (
+        monedaDest.tasaCambioBase === null ||
+        monedaDest.tasaCambioBase <= 0
+      ) {
         throw new BadRequestException(
-          `La moneda ${monedaDest.codigo} no tiene una tasa de cambio válida`
+          `La moneda ${monedaDest.codigo} no tiene una tasa de cambio válida`,
         );
       }
 
@@ -230,29 +268,32 @@ export class MonedasService {
       const tasaDestino = Number(monedaDest.tasaCambioBase);
 
       // Realizar la conversión:
-      const montosConvertidos = montos.map(monto => {
+      const montosConvertidos = montos.map((monto) => {
         const montoEnBase = monto * tasaOrigen;
         const montoFinal = montoEnBase / tasaDestino;
-        return Number(montoFinal.toFixed(4));
+        return Number(montoFinal.toFixed(2));
       });
 
-      return { 
+      return {
         montosConvertidos,
-        tasaConversion: Number((tasaOrigen / tasaDestino).toFixed(4)),
+        tasaConversion: Number((tasaOrigen / tasaDestino).toFixed(2)),
         detalleConversion: {
           monedaOrigen: monedaOrig.codigo,
           monedaDestino: monedaDest.codigo,
           tasaOrigen,
-          tasaDestino
-        }
+          tasaDestino,
+        },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       console.error('Error en la conversión de moneda:', error);
       throw new InternalServerErrorException(
-        'Ocurrió un error al realizar la conversión de moneda'
+        'Ocurrió un error al realizar la conversión de moneda',
       );
     }
   }

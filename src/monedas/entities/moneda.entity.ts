@@ -38,7 +38,7 @@ export class Moneda {
   @Column( {
     name: 'tasa_cambio_base',
     precision: 10,
-    scale: 4,
+    scale: 2,
     nullable: true,
     type: 'decimal',
   })

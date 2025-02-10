@@ -12,6 +12,7 @@ import { Compra } from 'src/compras/entities/compra.entity';
 import { Proveedor } from './entities/proveedor.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Moneda } from 'src/monedas/entities/moneda.entity';
 
 @Injectable()
 export class ProveedoresService {
@@ -193,6 +194,10 @@ export class ProveedoresService {
       }
     }
 
+    if (updateProveedorDto.idMoneda) {
+      proveedor.moneda = { id: updateProveedorDto.idMoneda } as Moneda;
+    }
+
     if (updateProveedorDto.telefono) {
       proveedor.linkWhatsapp = `https://wa.me/${updateProveedorDto.telefono.trim()}`;
     }
@@ -203,15 +208,13 @@ export class ProveedoresService {
       nit: updateProveedorDto.nit?.trim(),
       direccion: updateProveedorDto.direccion?.trim(),
       correo: updateProveedorDto.correo?.trim(),
-      idMoneda: updateProveedorDto.idMoneda,
     });
 
-    const updatedProveedor =
       await this.proveedoresRepository.save(proveedorUpdate);
 
     return {
       message: 'El proveedor ha sido actualizado exitosamente',
-      proveedor: updatedProveedor,
+      proveedor: proveedorUpdate,
     };
   }
 
