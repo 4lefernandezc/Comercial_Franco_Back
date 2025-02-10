@@ -168,12 +168,39 @@ export class CajasService {
         sucursal: { id: idSucursal },
         estado: 'abierta',
       },
-      relations: ['usuarioApertura', 'sucursal'],
+      relations: ['usuarioApertura'],
     });
 
     if (!caja) {
       throw new NotFoundException('No hay caja abierta para esta sucursal');
     }
+
+    const ventas = await this.ventaRepository.find({
+      where: {
+        caja: { id: caja.id },
+      },
+    });
+
+    const compras = await this.compraRepository.find({
+      where: {
+        caja: { id: caja.id },
+      },
+    });
+
+    const totalIngresos = ventas.reduce((sum, venta) => {
+      return sum + parseFloat(venta.totalVenta.toString());
+    }, 0);
+
+    const totalEgresos = compras.reduce((sum, compra) => {
+      return sum + parseFloat(compra.totalCompra.toString());
+    }, 0);
+
+    const montoInicial = parseFloat(caja.montoInicial.toString());
+    const montoFinal = montoInicial + totalIngresos - totalEgresos;
+
+    caja.totalIngresos = parseFloat(totalIngresos.toFixed(2));
+    caja.totalEgresos = parseFloat(totalEgresos.toFixed(2));
+    caja.montoFinal = parseFloat(montoFinal.toFixed(2));
 
     return caja;
   }
