@@ -104,8 +104,10 @@ export class InventariosSucursalesService {
       .take(limit)
       .getManyAndCount();
 
+    const parsedResult = result.map(inventario => this.parseFloatFields(inventario));
+
     return {
-      data: result,
+      data: parsedResult,
       total,
       page,
       pageCount: Math.ceil(total / limit),
@@ -150,4 +152,14 @@ export class InventariosSucursalesService {
       inventario,
     };
   }
+
+  // PARSEADO DE DATOS
+  private parseFloatFields(inventario: InventarioSucursal): InventarioSucursal {
+    return {
+      ...inventario,
+      stockActual: inventario.stockActual ? parseFloat(inventario.stockActual.toString()) : null,
+      stockMinimo: inventario.stockMinimo ? parseFloat(inventario.stockMinimo.toString()) : null,
+      stockMaximo: inventario.stockMaximo ? parseFloat(inventario.stockMaximo.toString()) : null,
+    };
+  }   
 }

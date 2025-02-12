@@ -328,8 +328,10 @@ export class CajasService {
       .take(limit)
       .getManyAndCount();
 
+    const parsedResult = result.map(caja => this.parseFloatFields(caja));
+
     return {
-      data: result,
+      data: parsedResult,
       total,
       page,
       pageCount: Math.ceil(total / limit),
@@ -372,5 +374,16 @@ export class CajasService {
     });
 
     return { ventas, compras };
+  }
+
+  // PARSEADO DE DATOS 
+  private parseFloatFields(caja: Caja): Caja {
+    return {
+      ...caja,
+      montoInicial: caja.montoInicial ? parseFloat(caja.montoInicial.toString()) : null,
+      montoFinal: caja.montoFinal ? parseFloat(caja.montoFinal.toString()) : null,
+      totalIngresos: caja.totalIngresos ? parseFloat(caja.totalIngresos.toString()) : null,
+      totalEgresos: caja.totalEgresos ? parseFloat(caja.totalEgresos.toString()) : null,
+    };
   }
 }
