@@ -157,9 +157,11 @@ export class ProductosService {
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
+  
+    const parsedResult = result.map(producto => this.parseFloatProducto(producto));
 
     return {
-      data: result,
+      data: parsedResult,
       total,
       page,
       pageCount: Math.ceil(total / limit),
@@ -260,5 +262,13 @@ export class ProductosService {
         );
       }
     }
+  }
+
+  private parseFloatProducto(producto: Producto): Producto {
+    return {
+      ...producto,
+      precioCompra: producto.precioCompra ? parseFloat(producto.precioCompra.toString()) : null,
+      precioVenta: producto.precioVenta ? parseFloat(producto.precioVenta.toString()) : null,
+    };
   }
 }

@@ -241,6 +241,8 @@ export class VentasService {
         'ventas.subtotal',
         'ventas.totalVenta',
         'ventas.metodoPago',
+        'ventas.montoPagado',
+        'ventas.cambio',
         'ventas.estado',
         'ventas.fechaCreacion',
         'ventas.fechaModificacion',
@@ -285,8 +287,10 @@ export class VentasService {
       .take(limit)
       .getManyAndCount();
 
+    const parsedResult = result.map(venta => this.parseFloatVenta(venta));
+
     return {
-      data: result,
+      data: parsedResult,
       total,
       page,
       pageCount: Math.ceil(total / limit),
@@ -381,5 +385,33 @@ export class VentasService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private parseFloatDetalleVenta(detalle: DetalleVenta): DetalleVenta {
+    return {
+      ...detalle,
+      cantidad: detalle.cantidad ? parseFloat(detalle.cantidad.toString()) : null,
+      precioUnitario: detalle.precioUnitario ? parseFloat(detalle.precioUnitario.toString()) : null,
+      descuento: detalle.descuento ? parseFloat(detalle.descuento.toString()) : null,
+      subtotal: detalle.subtotal ? parseFloat(detalle.subtotal.toString()) : null,
+    };
+  }
+
+  private parseFloatVenta(venta: Venta): Venta {
+    const parsedVenta = {
+      ...venta,
+      subtotal: venta.subtotal ? parseFloat(venta.subtotal.toString()) : null,
+      totalVenta: venta.totalVenta ? parseFloat(venta.totalVenta.toString()) : null,
+      montoPagado: venta.montoPagado ? parseFloat(venta.montoPagado.toString()) : null,
+      cambio: venta.cambio ? parseFloat(venta.cambio.toString()) : null,
+    };
+
+    if (venta.detalles && Array.isArray(venta.detalles)) {
+      parsedVenta.detalles = venta.detalles.map(detalle => 
+        this.parseFloatDetalleVenta(detalle)
+      );
+    }
+
+    return parsedVenta;
   }
 }

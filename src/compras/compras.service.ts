@@ -282,13 +282,15 @@ export class ComprasService {
         .take(limit)
         .getManyAndCount();
   
+      const parsedResult = result.map(compra => this.parseFloatCompra(compra));
+
       return {
-        data: result,
+        data: parsedResult,
         total,
         page,
         pageCount: Math.ceil(total / limit),
       };
-    }
+  }
 
   async anularCompra(id: number): Promise<Compra> {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -374,5 +376,31 @@ export class ComprasService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private parseFloatDetalleCompra(detalle: DetalleCompra): DetalleCompra {
+    return {
+      ...detalle,
+      cantidad: detalle.cantidad ? parseFloat(detalle.cantidad.toString()) : null,
+      precioUnitario: detalle.precioUnitario ? parseFloat(detalle.precioUnitario.toString()) : null,
+      descuento: detalle.descuento ? parseFloat(detalle.descuento.toString()) : null,
+      subtotal: detalle.subtotal ? parseFloat(detalle.subtotal.toString()) : null,
+    };
+  }
+
+  private parseFloatCompra(compra: Compra): Compra {
+    const parsedCompra = {
+      ...compra,
+      subtotal: compra.subtotal ? parseFloat(compra.subtotal.toString()) : null,
+      totalCompra: compra.totalCompra ? parseFloat(compra.totalCompra.toString()) : null,
+    };
+
+    if (compra.detalles && Array.isArray(compra.detalles)) {
+      parsedCompra.detalles = compra.detalles.map(detalle => 
+        this.parseFloatDetalleCompra(detalle)
+      );
+    }
+
+    return parsedCompra;
   }
 }
