@@ -15,13 +15,28 @@ export class QueryInventarioSucursalDto extends GetPaginationSortParamsDto {
   @IsOptional()
   readonly stockActual?: number;
 
+  @ApiPropertyOptional({ example: 'eq' }) // eq, lt, gt, lte, gte
+  @IsOptional()
+  @IsString()
+  readonly stockActualOperator?: string;
+
   @ApiPropertyOptional({ example: 50 })
   @IsOptional()
   readonly stockMinimo?: number;
 
+  @ApiPropertyOptional({ example: 'eq' }) // eq, lt, gt, lte, gte
+  @IsOptional()
+  @IsString()
+  readonly stockMinimoOperator?: string;
+
   @ApiPropertyOptional({ example: 100 })
   @IsOptional()
   readonly stockMaximo?: number;
+
+  @ApiPropertyOptional({ example: 'eq' }) // eq, lt, gt, lte, gte
+  @IsOptional()
+  @IsString()
+  readonly stockMaximoOperator?: string;
 
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()

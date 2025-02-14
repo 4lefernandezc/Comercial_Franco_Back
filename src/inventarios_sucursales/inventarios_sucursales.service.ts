@@ -65,22 +65,97 @@ export class InventariosSucursalesService {
       });
     }
 
-    if (stockActual) {
-      query.andWhere('inventarios_sucursales.stockActual = :stockActual', {
-        stockActual,
-      });
+    if (q.stockActual !== undefined) {
+      const operator = q.stockActualOperator || 'eq';
+      switch (operator) {
+        case 'eq':
+          query.andWhere('inventarios_sucursales.stockActual = :stockActual', {
+            stockActual: q.stockActual,
+          });
+          break;
+        case 'lt':
+          query.andWhere('inventarios_sucursales.stockActual < :stockActual', {
+            stockActual: q.stockActual,
+          });
+          break;
+        case 'gt':
+          query.andWhere('inventarios_sucursales.stockActual > :stockActual', {
+            stockActual: q.stockActual,
+          });
+          break;
+        case 'lte':
+          query.andWhere('inventarios_sucursales.stockActual <= :stockActual', {
+            stockActual: q.stockActual,
+          });
+          break;
+        case 'gte':
+          query.andWhere('inventarios_sucursales.stockActual >= :stockActual', {
+            stockActual: q.stockActual,
+          });
+          break;
+      }
     }
 
-    if (stockMinimo) {
-      query.andWhere('inventarios_sucursales.stockMinimo = :stockMinimo', {
-        stockMinimo,
-      });
+    if (q.stockMinimo !== undefined) {
+      const operator = q.stockMinimoOperator || 'eq';
+      switch (operator) {
+        case 'eq':
+          query.andWhere('inventarios_sucursales.stockMinimo = :stockMinimo', {
+            stockMinimo: q.stockMinimo,
+          });
+          break;
+        case 'lt':
+          query.andWhere('inventarios_sucursales.stockMinimo < :stockMinimo', {
+            stockMinimo: q.stockMinimo,
+          });
+          break;
+        case 'gt':
+          query.andWhere('inventarios_sucursales.stockMinimo > :stockMinimo', {
+            stockMinimo: q.stockMinimo,
+          });
+          break;
+        case 'lte':
+          query.andWhere('inventarios_sucursales.stockMinimo <= :stockMinimo', {
+            stockMinimo: q.stockMinimo,
+          });
+          break;
+        case 'gte':
+          query.andWhere('inventarios_sucursales.stockMinimo >= :stockMinimo', {
+            stockMinimo: q.stockMinimo,
+          });
+          break;
+      }
     }
 
-    if (stockMaximo) {
-      query.andWhere('inventarios_sucursales.stockMaximo = :stockMaximo', {
-        stockMaximo,
-      });
+    if (q.stockMaximo !== undefined) {
+      const operator = q.stockMaximoOperator || 'eq';
+      switch (operator) {
+        case 'eq':
+          query.andWhere('inventarios_sucursales.stockMaximo = :stockMaximo', {
+            stockMaximo: q.stockMaximo,
+          });
+          break;
+        case 'lt':
+          query.andWhere('inventarios_sucursales.stockMaximo < :stockMaximo', {
+            stockMaximo: q.stockMaximo,
+          });
+          break;
+        case 'gt':
+          query.andWhere('inventarios_sucursales.stockMaximo > :stockMaximo', {
+            stockMaximo: q.stockMaximo,
+          });
+          break;
+        case 'lte':
+          query.andWhere('inventarios_sucursales.stockMaximo <= :stockMaximo', {
+            stockMaximo: q.stockMaximo,
+          });
+          break;
+        case 'gte':
+          query.andWhere('inventarios_sucursales.stockMaximo >= :stockMaximo', {
+            stockMaximo: q.stockMaximo,
+          });
+          break;
+      }
     }
 
     if (tipoUnidadId) {
