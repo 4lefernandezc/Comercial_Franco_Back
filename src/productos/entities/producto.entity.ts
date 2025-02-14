@@ -35,8 +35,14 @@ export class Producto {
   @Column('decimal', { precision: 10, scale: 2, name: 'precio_compra' })
   precioCompra: number;
 
-  @Column('decimal', { precision: 10, scale: 2, name: 'precio_venta' })
+  @Column('decimal', { precision: 10, scale: 2, name: 'precio_venta'})
   precioVenta: number;
+
+  @Column('decimal', { precision: 10, scale: 2, name: 'precio_agranel', nullable: true })
+  precioAgranel?: number;
+
+  @Column('integer', { name: 'total_presentacion' , nullable: true })
+  totalPresentacion: number;
 
   @Column('boolean')
   activo: boolean;

@@ -58,6 +58,16 @@ export class CreateProductoDto {
   readonly precioVenta: number;
 
   @ApiProperty()
+  @IsOptional()
+  @IsNumber({}, { message: 'El campo precio_agranel debe ser de tipo numérico' })
+  readonly precioAgranel?: number;
+  
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber({}, { message: 'El campo total_presentacion debe ser de tipo numérico' })
+  readonly totalPresentacion?: number;
+
+  @ApiProperty()
   @IsNotEmpty({ message: 'El campo activo no debe ser vacío' })
   @IsBoolean({ message: 'El campo activo debe ser de tipo booleano' })
   readonly activo: boolean;

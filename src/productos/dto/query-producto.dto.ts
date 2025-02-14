@@ -32,6 +32,14 @@ export class QueryProductoDto extends GetPaginationSortParamsDto {
   @IsOptional()
   readonly precioVenta?: number;
 
+  @ApiPropertyOptional({ example: 10.50})
+  @IsOptional()
+  readonly precioAgranel?: number;
+
+  @ApiPropertyOptional({ example: 10 })
+  @IsOptional()
+  readonly totalPresentacion?: number;
+
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
   readonly idCategoria?: number;

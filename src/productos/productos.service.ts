@@ -55,6 +55,8 @@ export class ProductosService {
     producto.dimensiones = createProductoDto.dimensiones?.trim()|| null;
     producto.precioCompra = createProductoDto.precioCompra;
     producto.precioVenta = createProductoDto.precioVenta;
+    producto.precioAgranel = createProductoDto.precioAgranel || null;
+    producto.totalPresentacion = createProductoDto.totalPresentacion|| null;
     producto.activo = createProductoDto.activo;
     producto.categoria = { id: createProductoDto.idCategoria } as Categoria;
     producto.proveedor = { id: createProductoDto.idProveedor } as Proveedor;
@@ -71,6 +73,8 @@ export class ProductosService {
       dimensiones,
       precioCompra,
       precioVenta,
+      precioAgranel,
+      totalPresentacion,
       idCategoria,
       idProveedor,
       activo,
@@ -86,6 +90,8 @@ export class ProductosService {
       'productos.precioVenta',
       'productos.activo',
       'productos.presentacion',
+      'productos.totalPresentacion',
+      'productos.precioAgranel',
       'productos.dimensiones',
       'productos.idCategoria',
       'productos.idProveedor',
@@ -110,6 +116,18 @@ export class ProductosService {
     if (presentacion) {
       query.andWhere('productos.presentacion ILIKE :presentacion', {
         presentacion: `%${presentacion}%`,
+      });
+    }
+
+    if (totalPresentacion) {
+      query.andWhere('productos.totalPresentacion = :totalPresentacion', {
+        totalPresentacion,
+      });
+    }
+
+    if (precioAgranel) {
+      query.andWhere('productos.precioAgranel = :precioAgranel', {
+        precioAgranel,
       });
     }
 
@@ -269,6 +287,7 @@ export class ProductosService {
       ...producto,
       precioCompra: producto.precioCompra ? parseFloat(producto.precioCompra.toString()) : null,
       precioVenta: producto.precioVenta ? parseFloat(producto.precioVenta.toString()) : null,
+      precioAgranel: producto.precioAgranel ? parseFloat(producto.precioAgranel.toString()) : null,
     };
   }
 }
