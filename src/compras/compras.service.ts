@@ -67,7 +67,7 @@ export class ComprasService {
 
         if (inventario && inventario.stockMaximo !== null) {
           const stockActual = Number(inventario.stockActual || 0);
-          const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(3));
+          const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(2));
           
           if (nuevoStock > inventario.stockMaximo) {
             throw new BadRequestException(
@@ -127,7 +127,7 @@ export class ComprasService {
           });
       
           const stockActual = Number(inventario?.stockActual || 0);
-          const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(3));
+          const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(2));
       
           if (inventario) {
             await this.inventarioRepository.update(

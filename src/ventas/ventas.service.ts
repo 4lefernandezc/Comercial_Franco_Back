@@ -111,7 +111,7 @@ export class VentasService {
             );
 
             const nuevoStock = Number(
-              (inventario.stockActual - detalle.cantidad).toFixed(3),
+              (inventario.stockActual - detalle.cantidad).toFixed(2),
             );
 
             await queryRunner.manager.update(
@@ -349,7 +349,7 @@ export class VentasService {
         }
 
         const nuevoStock = Number(
-          (inventario.stockActual + detalle.cantidad).toFixed(3),
+          (inventario.stockActual + detalle.cantidad).toFixed(2),
         );
         await queryRunner.manager.update(
           InventarioSucursal,

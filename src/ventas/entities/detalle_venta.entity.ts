@@ -13,7 +13,7 @@ export class DetalleVenta {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'numeric', precision: 10, scale: 3 })
+  @Column({ type: 'numeric', precision: 10, scale: 2 })
   cantidad: number;
 
   @Column({ name:'precio_unitario', type: 'numeric', precision: 10, scale: 2 })

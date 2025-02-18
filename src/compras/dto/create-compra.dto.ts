@@ -10,8 +10,8 @@ class DetalleCompraDto {
 
   @ApiProperty({ description: 'Cantidad del producto', example: 2.5 })
   @IsNotEmpty()
-  @IsNumber({ maxDecimalPlaces: 3 }, { message: 'La cantidad debe ser un número con máximo 3 decimales' })
-  @Min(0.001, { message: 'La cantidad debe ser mayor a 0' })
+  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'La cantidad debe ser un número con máximo 2 decimales' })
+  @Min(0.01, { message: 'La cantidad debe ser mayor a 0' })
   @Max(1000000, { message: 'Cantidad demasiado grande' })
   cantidad: number;
 
