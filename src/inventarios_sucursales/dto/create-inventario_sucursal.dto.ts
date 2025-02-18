@@ -25,21 +25,18 @@ export class CreateInventarioSucursalDto {
   @ApiProperty()
   @IsNotEmpty({ message: 'El campo stock actual es obligatorio' })
   @IsNumber({}, { message: 'El campo stock actual debe ser de tipo numero' })
-  @IsInt()
   @Min(0, { message: 'El stock actual no puede ser negativo.' })
   readonly stockActual: number;
 
   @ApiProperty()
   @IsNotEmpty({ message: 'El campo stock minimo es obligatorio' })
   @IsNumber({}, { message: 'El campo stock minimo debe ser de tipo numero' })
-  @IsInt()
   @Min(0, { message: 'El stock mínimo no puede ser negativo.' })
   readonly stockMinimo: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber({}, { message: 'El campo stock maximo debe ser de tipo numero' })
-  @IsInt()
   @Min(0, { message: 'El stock máximo no puede ser negativo.' })
   readonly stockMaximo?: number;
 
