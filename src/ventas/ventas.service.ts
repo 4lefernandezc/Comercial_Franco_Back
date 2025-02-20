@@ -48,6 +48,8 @@ export class VentasService {
         idSucursal,
         idCliente,
         idUsuario,
+        nombre,
+        documento,
         tipoDocumento,
         montoPagado,
       } = createVentaDto;
@@ -86,16 +88,16 @@ export class VentasService {
           );
         }
 
-        if (inventario.stockMinimo !== null) {
-          const nuevoStock = inventario.stockActual - detalle.cantidad;
-          if (nuevoStock < inventario.stockMinimo) {
-            throw new BadRequestException(
-              `La venta reduce el stock por debajo del mínimo permitido para el producto ${inventario.producto.nombre}. ` +
-                `Stock actual: ${inventario.stockActual}, Stock mínimo: ${inventario.stockMinimo}, ` +
-                `Cantidad a vender: ${detalle.cantidad}`,
-            );
-          }
-        }
+        // if (inventario.stockMinimo !== null) {
+        //   const nuevoStock = inventario.stockActual - detalle.cantidad;
+        //   if (nuevoStock < inventario.stockMinimo) {
+        //     throw new BadRequestException(
+        //       `La venta reduce el stock por debajo del mínimo permitido para el producto ${inventario.producto.nombre}. ` +
+        //         `Stock actual: ${inventario.stockActual}, Stock mínimo: ${inventario.stockMinimo}, ` +
+        //         `Cantidad a vender: ${detalle.cantidad}`,
+        //     );
+        //   }
+        // }
 
         const detallesConPrecios = await Promise.all(
           detalles.map(async (detalle) => {
@@ -152,6 +154,8 @@ export class VentasService {
           caja: cajaActual,
           montoPagado: montoPagado,
           cambio: cambio,
+          nombre: createVentaDto.nombre,
+          documento: createVentaDto.documento,
           cliente: idCliente ? { id: idCliente } : null,
           usuario: { id: idUsuario },
           sucursal: { id: idSucursal },

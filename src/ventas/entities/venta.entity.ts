@@ -50,6 +50,12 @@ export class Venta {
   @Column({ name: 'cambio', type: 'numeric', precision: 10, scale: 2, nullable: true })
   cambio: number;
 
+  @Column({ name: 'nombre_cliente', type: 'varchar', nullable: true, default: null })
+  nombre?: string;
+
+  @Column({ name: 'documento_cliente', type: 'varchar', nullable: true, default: null })
+  documento?: string;
+
   @Column({ name: 'fecha_anulacion', type: 'timestamp', nullable: true })
   fechaAnulacion: Date;
 
@@ -66,7 +72,7 @@ export class Venta {
   sucursal: Sucursal;
 
   @ManyToOne(() => Cliente, (cliente) => cliente.ventas, { nullable: true })
-  cliente: Cliente;
+  cliente?: Cliente;
 
   @OneToMany(() => DetalleVenta, (detalleVenta) => detalleVenta.venta, {
     cascade: true,

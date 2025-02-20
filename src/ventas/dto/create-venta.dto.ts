@@ -21,10 +21,10 @@ class DetalleVentaDto {
 }
 
 export class CreateVentaDto {
-  @ApiProperty({ description: 'ID del cliente asociado a la venta', example: 1 })
+  @ApiProperty({ description: 'ID del cliente asociado a la venta', example: 1, nullable: true })
   @IsNumber()
   @IsOptional()
-  idCliente: number;
+  idCliente?: number;
 
   @ApiProperty({ description: 'Método de pago utilizado', example: 'efectivo' })
   @IsString()
@@ -59,4 +59,14 @@ export class CreateVentaDto {
   @IsString()
   @IsNotEmpty()
   tipoDocumento: string;
+
+  @ApiProperty({ description: 'Nombre del cliente', example: 'Juan Perez', nullable: true })
+  @IsString()
+  @IsOptional()
+  nombre?: string;
+
+  @ApiProperty({ description: 'Documento del cliente', example: '12345678', nullable: true })
+  @IsString()
+  @IsOptional()
+  documento?: string;
 }

@@ -284,11 +284,11 @@ export class MovimientosInventariosService {
       );
     }
 
-    if (inventario.stockActual - cantidad < inventario.stockMinimo) {
-      throw new BadRequestException(
-        `La salida dejará el stock por debajo del mínimo de ${inventario.stockMinimo}`,
-      );
-    }
+    // if (inventario.stockActual - cantidad < inventario.stockMinimo) {
+    //   throw new BadRequestException(
+    //     `La salida dejará el stock por debajo del mínimo de ${inventario.stockMinimo}`,
+    //   );
+    // }
 
     await queryRunner.manager.update(
       InventarioSucursal,
