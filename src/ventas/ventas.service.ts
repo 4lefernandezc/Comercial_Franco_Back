@@ -24,6 +24,7 @@ export class VentasService {
   ) {}
 
   async crearVenta(createVentaDto: CreateVentaDto): Promise<Venta> {
+    console.log('Iniciando creación de venta con DTO:', createVentaDto);
     const { idSucursal } = createVentaDto;
     const cajaActual = await this.cajaRepository.findOne({
       where: {
@@ -33,6 +34,7 @@ export class VentasService {
     });
 
     if (!cajaActual) {
+      console.error('No hay una caja abierta para realizar ventas');
       throw new BadRequestException(
         'No hay una caja abierta para realizar ventas',
       );
@@ -56,6 +58,7 @@ export class VentasService {
       let subtotalVenta = 0;
 
       for (const detalle of detalles) {
+        console.log('Procesando detalle de venta:', detalle);
         const inventario = await queryRunner.manager.findOne(
           InventarioSucursal,
           {
@@ -68,6 +71,9 @@ export class VentasService {
         );
 
         if (!inventario) {
+          console.error(
+            `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`,
+          );
           throw new BadRequestException(
             `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`,
           );
@@ -77,38 +83,33 @@ export class VentasService {
           !inventario.seVendeFraccion &&
           !Number.isInteger(detalle.cantidad)
         ) {
+          console.error(
+            `El producto ${inventario.producto.nombre} no permite ventas fraccionadas`,
+          );
           throw new BadRequestException(
             `El producto ${inventario.producto.nombre} no permite ventas fraccionadas`,
           );
         }
 
         if (inventario.stockActual < detalle.cantidad) {
+          console.error(
+            `Stock insuficiente para el producto ${inventario.producto.nombre}. Stock actual: ${inventario.stockActual}`,
+          );
           throw new BadRequestException(
             `Stock insuficiente para el producto ${inventario.producto.nombre}. Stock actual: ${inventario.stockActual}`,
           );
         }
-
-        // if (inventario.stockMinimo !== null) {
-        //   const nuevoStock = inventario.stockActual - detalle.cantidad;
-        //   if (nuevoStock < inventario.stockMinimo) {
-        //     throw new BadRequestException(
-        //       `La venta reduce el stock por debajo del mínimo permitido para el producto ${inventario.producto.nombre}. ` +
-        //         `Stock actual: ${inventario.stockActual}, Stock mínimo: ${inventario.stockMinimo}, ` +
-        //         `Cantidad a vender: ${detalle.cantidad}`,
-        //     );
-        //   }
-        // }
 
         const detallesConPrecios = await Promise.all(
           detalles.map(async (detalle) => {
             const inventario = await queryRunner.manager.findOne(
               InventarioSucursal,
               {
-                where: {
-                  idProducto: detalle.idProducto,
-                  idSucursal: idSucursal,
-                },
-                relations: ['producto'],
+          where: {
+            idProducto: detalle.idProducto,
+            idSucursal: idSucursal,
+          },
+          relations: ['producto'],
               },
             );
 
@@ -122,20 +123,46 @@ export class VentasService {
               { stockActual: nuevoStock },
             );
 
-            const precioUnitario = inventario.producto.precioVenta;
-            const subtotalDetalle =
-              precioUnitario * detalle.cantidad - (detalle.descuento || 0);
+            let subtotalDetalle = 0;
+
+            if (
+              inventario.producto.precioAgranel &&
+              inventario.producto.totalPresentacion
+            ) {
+              const wholeUnits = Math.floor(detalle.cantidad);
+              const fraction = detalle.cantidad - wholeUnits;
+
+              const wholeUnitsPrice =
+          wholeUnits * inventario.producto.precioVenta;
+              console.log(`Precio por unidades enteras (${wholeUnits}): ${wholeUnitsPrice}`);
+
+              const bulkQuantity =
+          fraction * inventario.producto.totalPresentacion;
+              const fractionPrice =
+          bulkQuantity * inventario.producto.precioAgranel;
+              console.log(`Precio por fracción (${bulkQuantity}): ${fractionPrice}`);
+
+              subtotalDetalle = wholeUnitsPrice + fractionPrice;
+            } else {
+              subtotalDetalle =
+          inventario.producto.precioVenta * detalle.cantidad;
+            }
+
+            subtotalDetalle -= detalle.descuento || 0;
             subtotalVenta += subtotalDetalle;
 
             return {
               ...detalle,
-              precio_unitario: precioUnitario,
+              precio_unitario: inventario.producto.precioVenta,
               subtotal: subtotalDetalle,
             };
           }),
         );
 
         if (montoPagado < subtotalVenta) {
+          console.error(
+            `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`,
+          );
           throw new BadRequestException(
             `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`,
           );
@@ -162,6 +189,7 @@ export class VentasService {
         });
 
         const ventaGuardada = await queryRunner.manager.save(venta);
+        console.log('Venta guardada:', ventaGuardada);
 
         const detallesVenta = detallesConPrecios.map((detalle) =>
           queryRunner.manager.create(DetalleVenta, {
@@ -175,8 +203,10 @@ export class VentasService {
         );
 
         await queryRunner.manager.save(detallesVenta);
+        console.log('Detalles de venta guardados:', detallesVenta);
 
         await queryRunner.commitTransaction();
+        console.log('Transacción de venta completada');
 
         return this.obtenerVentaPorId(ventaGuardada.id);
       }
@@ -291,7 +321,7 @@ export class VentasService {
       .take(limit)
       .getManyAndCount();
 
-    const parsedResult = result.map(venta => this.parseFloatVenta(venta));
+    const parsedResult = result.map((venta) => this.parseFloatVenta(venta));
 
     return {
       data: parsedResult,
@@ -394,10 +424,18 @@ export class VentasService {
   private parseFloatDetalleVenta(detalle: DetalleVenta): DetalleVenta {
     return {
       ...detalle,
-      cantidad: detalle.cantidad ? parseFloat(detalle.cantidad.toString()) : null,
-      precioUnitario: detalle.precioUnitario ? parseFloat(detalle.precioUnitario.toString()) : null,
-      descuento: detalle.descuento ? parseFloat(detalle.descuento.toString()) : null,
-      subtotal: detalle.subtotal ? parseFloat(detalle.subtotal.toString()) : null,
+      cantidad: detalle.cantidad
+        ? parseFloat(detalle.cantidad.toString())
+        : null,
+      precioUnitario: detalle.precioUnitario
+        ? parseFloat(detalle.precioUnitario.toString())
+        : null,
+      descuento: detalle.descuento
+        ? parseFloat(detalle.descuento.toString())
+        : null,
+      subtotal: detalle.subtotal
+        ? parseFloat(detalle.subtotal.toString())
+        : null,
     };
   }
 
@@ -405,14 +443,18 @@ export class VentasService {
     const parsedVenta = {
       ...venta,
       subtotal: venta.subtotal ? parseFloat(venta.subtotal.toString()) : null,
-      totalVenta: venta.totalVenta ? parseFloat(venta.totalVenta.toString()) : null,
-      montoPagado: venta.montoPagado ? parseFloat(venta.montoPagado.toString()) : null,
+      totalVenta: venta.totalVenta
+        ? parseFloat(venta.totalVenta.toString())
+        : null,
+      montoPagado: venta.montoPagado
+        ? parseFloat(venta.montoPagado.toString())
+        : null,
       cambio: venta.cambio ? parseFloat(venta.cambio.toString()) : null,
     };
 
     if (venta.detalles && Array.isArray(venta.detalles)) {
-      parsedVenta.detalles = venta.detalles.map(detalle => 
-        this.parseFloatDetalleVenta(detalle)
+      parsedVenta.detalles = venta.detalles.map((detalle) =>
+        this.parseFloatDetalleVenta(detalle),
       );
     }
 

@@ -38,7 +38,7 @@ export class Producto {
   @Column('decimal', { precision: 10, scale: 2, name: 'precio_venta'})
   precioVenta: number;
 
-  @Column('decimal', { precision: 10, scale: 2, name: 'precio_agranel', nullable: true })
+  @Column('decimal', { precision: 10, scale: 4, name: 'precio_agranel', nullable: true })
   precioAgranel?: number;
 
   @Column('integer', { name: 'total_presentacion' , nullable: true })
