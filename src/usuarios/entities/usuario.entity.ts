@@ -17,6 +17,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Cotizacion } from 'src/cotizaciones/entities/cotizacion.entity';
 
 @Entity('usuarios')
 export class Usuario {
@@ -72,6 +73,9 @@ export class Usuario {
 
   @OneToMany(() => Venta, (venta) => venta.usuario)
   ventas: Venta[];
+
+  @OneToMany(() => Cotizacion, (cotizacion) => cotizacion.usuario)
+  cotizacion: Cotizacion[];
 
   @OneToMany(() => Compra, (compra) => compra.usuario)
   compras: Compra[];

@@ -1,3 +1,4 @@
+import { Cotizacion } from 'src/cotizaciones/entities/cotizacion.entity';
 import { Venta } from 'src/ventas/entities/venta.entity';
 import {
   Column,
@@ -48,4 +49,7 @@ export class Cliente {
 
   @OneToMany(() => Venta, (venta) => venta.cliente)
   ventas: Venta[];
+
+  @OneToMany(() => Cotizacion, (cotizacion) => cotizacion.cliente)
+  cotizacion: Cotizacion[];
 }

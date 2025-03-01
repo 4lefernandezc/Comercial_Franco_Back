@@ -25,7 +25,7 @@ export class DetalleVenta {
   @Column({ type: 'numeric', precision: 10, scale: 2, nullable: false })
   subtotal: number;
 
-  @CreateDateColumn({name: 'fecha_creacion '})
+  @CreateDateColumn({name: 'fecha_creacion'})
   fechaCreacion: Date;
 
   @ManyToOne(() => Venta, (venta) => venta.detalles)
