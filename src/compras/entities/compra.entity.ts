@@ -59,7 +59,7 @@ export class Compra {
   @ManyToOne(() => Sucursal, (sucursal) => sucursal.compras)
   sucursal: Sucursal;
 
-    @ManyToOne(() => Proveedor, (proveedor) => proveedor.compras, { nullable: false })
+  @ManyToOne(() => Proveedor, (proveedor) => proveedor.compras, { nullable: false })
   proveedor: Proveedor;
 
   @OneToMany(() => DetalleCompra, (detalleCompra) => detalleCompra.compra, {

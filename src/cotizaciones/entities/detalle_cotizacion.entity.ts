@@ -8,7 +8,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
-@Entity('detalle_cotizacion')
+@Entity('detalle_cotizaciones')
 export class DetalleCotizacion {
   @PrimaryGeneratedColumn()
   id: number;

@@ -50,7 +50,7 @@ export class Proveedor {
   @OneToMany(() => Producto, (producto) => producto.categoria)
   productos: Producto[];
 
-  @OneToMany(() => Compra, (compra) => compra.sucursal)
+  @OneToMany(() => Compra, (compra) => compra.proveedor)
   compras: Compra[];
 
   @ManyToOne(() => Moneda, (moneda) => moneda.proveedores)

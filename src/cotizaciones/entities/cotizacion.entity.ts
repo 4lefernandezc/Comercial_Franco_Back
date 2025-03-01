@@ -5,7 +5,7 @@ import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { DetalleCotizacion } from "./detalle_cotizacion.entity";
 
-@Entity('cotizacion')
+@Entity('cotizaciones')
 export class Cotizacion {
   @PrimaryGeneratedColumn()
   id: number;
