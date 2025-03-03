@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -41,7 +40,7 @@ export class SucursalesService {
       nombre: createSucursalDto.nombre.trim(),
     });
     if (existingSucursalByName) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `La sucursal con el nombre proporcionado ya existe`,
       );
     }
@@ -51,7 +50,7 @@ export class SucursalesService {
         direccion: createSucursalDto.direccion.trim(),
       });
     if (existingSucursalByDireccion) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `La sucursal con la dirección proporcionada ya existe`,
       );
     }
@@ -157,7 +156,7 @@ export class SucursalesService {
       });
   
       if (existingSucursalByName && existingSucursalByName.id !== id) {
-        throw new BadRequestException(
+        throw new ConflictException(
           'La sucursal con el nombre proporcionado ya existe',
         );
       }
@@ -172,7 +171,7 @@ export class SucursalesService {
         });
   
       if (existingSucursalByDireccion && existingSucursalByDireccion.id !== id) {
-        throw new BadRequestException(
+        throw new ConflictException(
           'La sucursal con la dirección proporcionada ya existe',
         );
       }

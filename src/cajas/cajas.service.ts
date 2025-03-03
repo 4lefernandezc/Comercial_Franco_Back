@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -41,8 +42,8 @@ export class CajasService {
     });
 
     if (cajaAbierta) {
-      throw new BadRequestException(
-        'Ya existe una caja abierta para esta sucursal',
+      throw new ConflictException(
+      'Ya existe una caja abierta para esta sucursal',
       );
     }
 
@@ -97,7 +98,7 @@ export class CajasService {
       }
 
       if (caja.estado === 'cerrada') {
-        throw new BadRequestException('La caja ya está cerrada');
+        throw new ConflictException('La caja ya está cerrada');
       }
 
       // Modificamos la consulta para obtener las ventas asociadas directamente a la caja

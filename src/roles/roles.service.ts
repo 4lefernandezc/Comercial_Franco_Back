@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -27,7 +26,7 @@ export class RolesService {
         nombre: createRolDto.nombre.toLowerCase(),
       },
     });
-    if (rol) throw new BadRequestException('Ya existe un rol con ese nombre');
+    if (rol) throw new ConflictException('Ya existe un rol con ese nombre');
     const newRol = this.rolesRepository.create({
       ...createRolDto,
       nombre: createRolDto.nombre.toLowerCase().trim(),
@@ -98,7 +97,7 @@ export class RolesService {
       });
   
       if (existingRol && existingRol.id !== id) {
-        throw new BadRequestException('Ya existe un rol con ese nombre');
+        throw new ConflictException('Ya existe un rol con ese nombre');
       }
   
       updatedData = {

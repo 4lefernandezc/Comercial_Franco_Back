@@ -41,7 +41,7 @@ export class MonedasService {
       });
 
       if (existingMoneda) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `Ya existe una moneda con el nombre o código proporcionado`,
         );
       }
@@ -146,7 +146,7 @@ export class MonedasService {
         });
 
         if (existingMoneda && existingMoneda.id !== id) {
-          throw new BadRequestException(
+          throw new ConflictException(
             `Ya existe una moneda con el nombre o código proporcionado`,
           );
         }
@@ -251,7 +251,7 @@ export class MonedasService {
         monedaOrig.tasaCambioBase === null ||
         monedaOrig.tasaCambioBase <= 0
       ) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `La moneda ${monedaOrig.codigo} no tiene una tasa de cambio válida`,
         );
       }
@@ -259,7 +259,7 @@ export class MonedasService {
         monedaDest.tasaCambioBase === null ||
         monedaDest.tasaCambioBase <= 0
       ) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `La moneda ${monedaDest.codigo} no tiene una tasa de cambio válida`,
         );
       }

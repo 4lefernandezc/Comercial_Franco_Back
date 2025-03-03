@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Like } from 'typeorm';
@@ -35,7 +36,7 @@ export class VentasService {
 
     if (!cajaActual) {
       console.error('No hay una caja abierta para realizar ventas');
-      throw new BadRequestException(
+      throw new ConflictException(
         'No hay una caja abierta para realizar ventas',
       );
     }
@@ -74,7 +75,7 @@ export class VentasService {
           console.error(
             `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`,
           );
-          throw new BadRequestException(
+          throw new ConflictException(
             `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`,
           );
         }
@@ -86,7 +87,7 @@ export class VentasService {
           console.error(
             `El producto ${inventario.producto.nombre} no permite ventas fraccionadas`,
           );
-          throw new BadRequestException(
+          throw new ConflictException(
             `El producto ${inventario.producto.nombre} no permite ventas fraccionadas`,
           );
         }
@@ -95,7 +96,7 @@ export class VentasService {
           console.error(
             `Stock insuficiente para el producto ${inventario.producto.nombre}. Stock actual: ${inventario.stockActual}`,
           );
-          throw new BadRequestException(
+          throw new ConflictException(
             `Stock insuficiente para el producto ${inventario.producto.nombre}. Stock actual: ${inventario.stockActual}`,
           );
         }
@@ -163,7 +164,7 @@ export class VentasService {
           console.error(
             `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`,
           );
-          throw new BadRequestException(
+          throw new ConflictException(
             `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`,
           );
         }
@@ -347,7 +348,7 @@ export class VentasService {
       }
 
       if (venta.estado === 'anulada') {
-        throw new BadRequestException('Esta venta ya está anulada');
+        throw new ConflictException('Esta venta ya está anulada');
       }
 
       const ventaConDetalles = await queryRunner.manager

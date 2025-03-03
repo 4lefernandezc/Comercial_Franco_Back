@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -27,7 +26,7 @@ export class ClientesService {
     });
 
     if (existingCliente) {
-      throw new BadRequestException(`El cliente con el documento proporcionado ya existe`);
+      throw new ConflictException(`El cliente con el documento proporcionado ya existe`);
     }
 
     const linkWhatsApp = createClienteDto.telefono
@@ -142,7 +141,7 @@ export class ClientesService {
       });
   
       if (existingCliente && existingCliente.id !== id) {
-        throw new BadRequestException(`El cliente con el documento proporcionado ya existe`);
+        throw new ConflictException(`El cliente con el documento proporcionado ya existe`);
       }
     }
   

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTipoUnidadDto } from './dto/create-tipo_unidad.dto';
 import { UpdateTipoUnidadDto } from './dto/update-tipo_unidad.dto';
 import { QueryTipoUnidadDto } from './dto/query-tipo_unidad.dto';
@@ -23,7 +23,7 @@ export class TiposUnidadesService {
       },
     });
     if (tipoUnidad)
-      throw new BadRequestException(
+      throw new ConflictException(
         'Ya existe un tipo de unidad con ese nombre',
       );
     const newTipoUnidad = this.tipoUnidadRepository.create({
@@ -78,7 +78,7 @@ export class TiposUnidadesService {
   async findOne(id: number): Promise<TipoUnidad> {
    const tipoUnidad = await this.tipoUnidadRepository.findOneBy({ id });
     if (!tipoUnidad)
-      throw new BadRequestException('No existe un tipo de unidad con ese ID');
+      throw new NotFoundException('No existe un tipo de unidad con ese ID');
     return tipoUnidad;
   }
 
@@ -98,7 +98,7 @@ export class TiposUnidadesService {
       });
 
       if (existingTipoUnidad && existingTipoUnidad.id !== id) {
-        throw new BadRequestException('Ya existe un tipo de unidad con ese nombre');
+        throw new ConflictException('Ya existe un tipo de unidad con ese nombre');
       }
 
       updatedData = {

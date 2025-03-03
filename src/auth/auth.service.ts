@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
@@ -58,7 +58,7 @@ export class AuthService {
   async changePassword(userId: number, { oldPassword, newPassword }: ChangePasswordDto) {
     const user = await this.usuarioService.findOne(userId);
     if (!user) {
-      throw new BadRequestException('Usuario no encontrado');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     const isPasswordValid = await bcrypt.compare(oldPassword, user.clave);

@@ -1,7 +1,7 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Like } from 'typeorm';
@@ -61,7 +61,7 @@ export class CotizacionesService {
             console.error(
               `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`,
             );
-            throw new BadRequestException(
+            throw new NotFoundException(
               `No se encontró inventario para el producto ${detalle.idProducto} en la sucursal ${idSucursal}`,
             );
           }
@@ -73,7 +73,7 @@ export class CotizacionesService {
             console.error(
               `El producto ${inventario.producto.nombre} no permite ventas fraccionadas`,
             );
-            throw new BadRequestException(
+            throw new ConflictException(
               `El producto ${inventario.producto.nombre} no permite ventas fraccionadas`,
             );
           }
@@ -290,13 +290,6 @@ export class CotizacionesService {
     await this.cotizacionesRepository.save(cotizacion);
     
     return this.obtenerCotizacionPorId(id);
-  }
-
-  // Método para convertir cotización a venta (opcional)
-  async convertirAVenta(id: number) {
-    // Aquí implementarías la lógica para convertir una cotización en venta
-    // Utilizando el servicio de ventas para crear una venta basada en esta cotización
-    throw new Error('Método no implementado');
   }
 
   private parseFloatDetalleCotizacion(detalle: DetalleCotizacion): DetalleCotizacion {

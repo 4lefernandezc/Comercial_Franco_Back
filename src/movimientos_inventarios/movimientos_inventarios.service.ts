@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -90,7 +91,7 @@ export class MovimientosInventariosService {
           );
           break;
         default:
-          throw new BadRequestException(
+          throw new ConflictException(
             'Tipo de movimiento inválido. Solo se admiten los tipos: entrada, salida, transferencia',
           );
       }
@@ -174,7 +175,7 @@ export class MovimientosInventariosService {
 
     // Validate destination branch and source branch are different
     if (idSucursal === idSucursalDestino) {
-      throw new BadRequestException(
+      throw new ConflictException(
         'La sucursal destino debe ser diferente a la sucursal origen',
       );
     }
@@ -196,7 +197,7 @@ export class MovimientosInventariosService {
     }
   
     if (!inventario.seVendeFraccion && !Number.isInteger(cantidad)) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `El producto no permite movimientos fraccionados en esta sucursal`
       );
     }
@@ -207,7 +208,7 @@ export class MovimientosInventariosService {
     idSucursalDestino?: number,
   ): void {
     if (tipoMovimiento === 'transferencia' && !idSucursalDestino) {
-      throw new BadRequestException(
+      throw new ConflictException(
         'Para transferencias, se requiere id_sucursal_destino',
       );
     }
@@ -239,7 +240,7 @@ export class MovimientosInventariosService {
       inventario.stockMaximo &&
       (parseFloat(inventario.stockActual.toString()) + cantidad > parseFloat(inventario.stockMaximo.toString()))
     ) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `La cantidad excede el stock máximo permitido de ${inventario.stockMaximo}`
       );
     }
@@ -279,16 +280,10 @@ export class MovimientosInventariosService {
     }
 
     if (inventario.stockActual < cantidad) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `Stock insuficiente para producto ${idProducto} en sucursal ${idSucursal}`,
       );
     }
-
-    // if (inventario.stockActual - cantidad < inventario.stockMinimo) {
-    //   throw new BadRequestException(
-    //     `La salida dejará el stock por debajo del mínimo de ${inventario.stockMinimo}`,
-    //   );
-    // }
 
     await queryRunner.manager.update(
       InventarioSucursal,
@@ -324,7 +319,7 @@ export class MovimientosInventariosService {
   
     // Verificar que hay suficiente stock en la sucursal origen
     if (inventarioOrigen.stockActual < cantidad) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `Stock insuficiente para transferir producto ${idProducto} desde la sucursal ${idSucursalOrigen}`,
       );
     }
@@ -388,7 +383,7 @@ export class MovimientosInventariosService {
       case 'transferencia':
         return 'TRANS';
       default:
-        throw new BadRequestException('Tipo de movimiento inválido. Solo se admiten los tipos: entrada, salida, transferencia');
+        throw new ConflictException('Tipo de movimiento inválido. Solo se admiten los tipos: entrada, salida, transferencia');
     }
   }
 
@@ -522,7 +517,7 @@ export class MovimientosInventariosService {
       const movimiento = await this.findOne(id);
   
       if (movimiento.estado === 'CANCELADO') {
-        throw new BadRequestException(`Movimiento ${id} ya está cancelado`);
+        throw new ConflictException(`Movimiento ${id} ya está cancelado`);
       }
 
       await this.validateFractionalMovement(
@@ -577,7 +572,7 @@ export class MovimientosInventariosService {
     }
   
     if (inventario.stockActual - movimiento.cantidad < 0) {
-      throw new BadRequestException('La cancelación dejaría el stock en negativo');
+      throw new ConflictException('La cancelación dejaría el stock en negativo');
     }
   
     await this.inventarioRepository.update(
@@ -614,7 +609,7 @@ export class MovimientosInventariosService {
       });
   
       if (destinoInventario && destinoInventario.stockActual - movimiento.cantidad < 0) {
-        throw new BadRequestException('La cancelación dejaría el stock destino en negativo');
+        throw new ConflictException('La cancelación dejaría el stock destino en negativo');
       }
   
       await this.inventarioRepository.update(

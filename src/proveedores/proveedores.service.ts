@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -30,7 +29,7 @@ export class ProveedoresService {
       nombre: createProveedorDto.nombre.trim(),
     });
     if (existingProveedorByName) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `El proveedor con el nombre proporcionado ya existe`,
       );
     }
@@ -39,7 +38,7 @@ export class ProveedoresService {
       nit: createProveedorDto.nit.trim(),
     });
     if (existingProveedorByNit) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `El proveedor con el NIT proporcionado ya existe`,
       );
     }
@@ -174,7 +173,7 @@ export class ProveedoresService {
         });
 
       if (existingProveedorByName && existingProveedorByName.id !== id) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `El proveedor con el nombre proporcionado ya existe`,
         );
       }
@@ -188,7 +187,7 @@ export class ProveedoresService {
       );
 
       if (existingProveedorByNit && existingProveedorByNit.id !== id) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `El proveedor con el NIT proporcionado ya existe`,
         );
       }

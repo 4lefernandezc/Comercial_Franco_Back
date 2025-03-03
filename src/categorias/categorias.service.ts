@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -24,7 +23,7 @@ export class CategoriasService {
   async create(createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
     const existingCategoria = await this.categoriasRepository.findOneBy({ nombre: createCategoriaDto.nombre.trim() });
     if (existingCategoria) {
-      throw new BadRequestException(`La categoria con el nombre proporcionado ya existe`);
+      throw new ConflictException(`La categoria con el nombre proporcionado ya existe`);
     }
 
     const categoria = this.categoriasRepository.create({
@@ -96,7 +95,7 @@ export class CategoriasService {
       });
   
       if (existingCategoria && existingCategoria.id !== id) {
-        throw new BadRequestException(`La categoria con el nombre proporcionado ya existe`);
+        throw new ConflictException(`La categoria con el nombre proporcionado ya existe`);
       }
     }
   

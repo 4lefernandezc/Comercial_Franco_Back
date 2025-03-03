@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Like } from 'typeorm';
 import { Compra } from './entities/compra.entity';
@@ -35,7 +35,7 @@ export class ComprasService {
     });
     
     if (!cajaActual) {
-      throw new BadRequestException('No hay una caja abierta para realizar compras');
+      throw new ConflictException('No hay una caja abierta para realizar compras');
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -52,7 +52,7 @@ export class ComprasService {
         });
 
         if (!producto) {
-          throw new BadRequestException(`Producto con ID ${detalle.idProducto} no encontrado`);
+          throw new NotFoundException(`Producto con ID ${detalle.idProducto} no encontrado`);
         }
 
         const inventario = producto.inventarios.find(
@@ -60,7 +60,7 @@ export class ComprasService {
         );
 
         if (inventario && !inventario.seVendeFraccion && !Number.isInteger(detalle.cantidad)) {
-          throw new BadRequestException(
+          throw new ConflictException(
             `El producto ${producto.nombre} no permite compras fraccionadas`
           );
         }
@@ -69,13 +69,13 @@ export class ComprasService {
           const stockActual = Number(inventario.stockActual || 0);
           const nuevoStock = Number((stockActual + detalle.cantidad).toFixed(2));
           
-          if (nuevoStock > inventario.stockMaximo) {
-            throw new BadRequestException(
+            if (nuevoStock > inventario.stockMaximo) {
+            throw new ConflictException(
               `La compra excede el stock máximo permitido para el producto ${producto.nombre}. ` +
               `Stock actual: ${stockActual}, Stock máximo: ${inventario.stockMaximo}, ` +
               `Cantidad a comprar: ${detalle.cantidad}`
             );
-          }
+            }
         }
       }
 
@@ -87,7 +87,7 @@ export class ComprasService {
       const detallesCompra = detalles.map(detalle => {
         const producto = productosMap.get(detalle.idProducto);
         if (!producto) {
-          throw new BadRequestException(`Producto con ID ${detalle.idProducto} no encontrado`);
+          throw new NotFoundException(`Producto con ID ${detalle.idProducto} no encontrado`);
         }
 
         const precioUnitario = producto.precioCompra;
@@ -308,7 +308,7 @@ export class ComprasService {
       }
 
       if (compra.estado === 'anulada') {
-        throw new BadRequestException('Esta compra ya está anulada');
+        throw new ConflictException('Esta compra ya está anulada');
       }
 
       const compraConDetalles = await queryRunner.manager
@@ -333,7 +333,7 @@ export class ComprasService {
         });
   
         if (inventario.stockActual < detalle.cantidad) {
-          throw new BadRequestException(
+          throw new ConflictException(
             `No se puede anular la compra. El stock actual (${inventario.stockActual}) 
             es menor que la cantidad a devolver (${detalle.cantidad}) para el producto ${detalle.producto.nombre}`
           );
