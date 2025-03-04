@@ -130,16 +130,16 @@ INSERT INTO inventarios_sucursales ("stock_actual", "stock_minimo", "stock_maxim
 
 -- Poblar la tabla movimientos_inventarios (10)
 INSERT INTO movimientos_inventarios ("documento_referencia", "tipo_movimiento", "cantidad", "motivo", "estado", "id_usuario", "id_sucursal_destino", "id_producto", "id_sucursal") VALUES
-('ENT1', 'entrada', 10, 'Compra', 'completado', 1, NULL, 1, 1),
-('SAL1', 'salida', 5, 'Venta', 'completado', 2, NULL, 2, 2),
-('AJU1', 'ajuste', 2, 'Ajuste', 'completado', 3, NULL, 3, 3),
-('TRANS1', 'transferencia', 3, 'Reubicación', 'completado', 4, 5, 4, 4),
-('ENT2', 'entrada', 4, 'Compra', 'completado', 5, NULL, 5, 5),
-('SAL2', 'salida', 7, 'Venta', 'completado', 6, NULL, 6, 6),
-('AJU2', 'ajuste', 1, 'Ajuste', 'completado', 7, NULL, 7, 7),
-('ENT3', 'entrada', 20, 'Compra', 'completado', 8, NULL, 8, 8),
-('SAL3', 'salida', 3, 'Venta', 'completado', 9, NULL, 9, 9),
-('ENT4', 'entrada', 5, 'Compra', 'completado', 10, NULL, 10, 10);
+('ENT-1', 'entrada', 10, 'Compra', 'REALIZADO', 1, NULL, 1, 1),
+('SAL-1', 'salida', 5, 'Venta', 'REALIZADO', 2, NULL, 2, 2),
+('AJU-1', 'ajuste', 2, 'Ajuste', 'REALIZADO', 3, NULL, 3, 3),
+('TRANS-1', 'transferencia', 3, 'Reubicación', 'REALIZADO', 4, 5, 4, 4),
+('ENT-2', 'entrada', 4, 'Compra', 'REALIZADO', 5, NULL, 5, 5),
+('SAL-2', 'salida', 7, 'Venta', 'REALIZADO', 6, NULL, 6, 6),
+('AJU-2', 'ajuste', 1, 'Ajuste', 'REALIZADO', 7, NULL, 7, 7),
+('ENT-3', 'entrada', 20, 'Compra', 'REALIZADO', 8, NULL, 8, 8),
+('SAL-3', 'salida', 3, 'Venta', 'REALIZADO', 9, NULL, 9, 9),
+('ENT-4', 'entrada', 5, 'Compra', 'REALIZADO', 10, NULL, 10, 10);
 
 -- Poblar la tabla ventas (10)
 INSERT INTO ventas ("numero_documento", "subtotal", "total_venta", "metodo_pago", "estado", "monto_pagado", "cambio", "fecha_anulacion", "usuario_id", "sucursal_id", "cliente_id", "caja_id", "nombre_cliente", "documento_cliente") VALUES
