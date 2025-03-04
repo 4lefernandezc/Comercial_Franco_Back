@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  InternalServerErrorException,
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -413,7 +412,7 @@ export class VentasService {
         throw error;
       }
 
-      throw new InternalServerErrorException(
+      throw new ConflictException(
         'Error al procesar la anulación de la venta',
         error.message,
       );

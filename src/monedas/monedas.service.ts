@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateMonedaDto } from './dto/create-moneda.dto';
@@ -28,44 +27,35 @@ export class MonedasService {
   ) {}
 
   async create(createMonedaDto: CreateMonedaDto): Promise<Moneda> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const existingMonedaByNombre = await this.monedasRepository.findOne({
+      where: { nombre: createMonedaDto.nombre.trim() },
+    });
 
-    try {
-      const existingMoneda = await this.monedasRepository.findOne({
-        where: [
-          { nombre: createMonedaDto.nombre.trim() },
-          { codigo: createMonedaDto.codigo.trim() },
-        ],
-      });
-
-      if (existingMoneda) {
-        throw new ConflictException(
-          `Ya existe una moneda con el nombre o código proporcionado`,
-        );
-      }
-
-      const moneda = this.monedasRepository.create({
-        codigo: createMonedaDto.codigo.trim().toUpperCase(),
-        nombre: createMonedaDto.nombre.trim(),
-        simbolo: createMonedaDto.simbolo.trim(),
-        esPrincipal: createMonedaDto.esPrincipal,
-        tasaCambioBase: createMonedaDto.tasaCambioBase,
-      });
-
-      await queryRunner.manager.save(moneda);
-      await queryRunner.commitTransaction();
-      return moneda;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error al crear la moneda');
-    } finally {
-      await queryRunner.release();
+    if (existingMonedaByNombre) {
+      throw new ConflictException(
+        `Ya existe una moneda con el nombre proporcionado`,
+      );
     }
+
+    const existingMonedaByCodigo = await this.monedasRepository.findOne({
+      where: { codigo: createMonedaDto.codigo.trim() },
+    });
+
+    if (existingMonedaByCodigo) {
+      throw new ConflictException(
+        `Ya existe una moneda con el código proporcionado`,
+      );
+    }
+
+    const moneda = this.monedasRepository.create({
+      codigo: createMonedaDto.codigo.trim().toUpperCase(),
+      nombre: createMonedaDto.nombre.trim(),
+      simbolo: createMonedaDto.simbolo.trim(),
+      esPrincipal: createMonedaDto.esPrincipal,
+      tasaCambioBase: createMonedaDto.tasaCambioBase,
+    });
+
+    return this.monedasRepository.save(moneda);
   }
 
   async findAll(q: QueryMonedaDto) {
@@ -110,8 +100,10 @@ export class MonedasService {
       .take(limit)
       .getManyAndCount();
 
+    const parsedResult = result.map((moneda) => this.parseFloatMoneda(moneda));
+
     return {
-      data: result,
+      data: parsedResult,
       total,
       page,
       pageCount: Math.ceil(total / limit),
@@ -130,54 +122,45 @@ export class MonedasService {
     id: number,
     updateMonedaDto: UpdateMonedaDto,
   ): Promise<{ message: string; moneda: Moneda }> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const moneda = await this.findOne(id);
 
-    try {
-      const moneda = await this.findOne(id);
-
-      if (updateMonedaDto.nombre || updateMonedaDto.codigo) {
-        const existingMoneda = await this.monedasRepository.findOne({
-          where: [
-            { nombre: updateMonedaDto.nombre?.trim() },
-            { codigo: updateMonedaDto.codigo?.trim() },
-          ],
-        });
-
-        if (existingMoneda && existingMoneda.id !== id) {
-          throw new ConflictException(
-            `Ya existe una moneda con el nombre o código proporcionado`,
-          );
-        }
-      }
-
-      const monedaUpdate = Object.assign(moneda, {
-        ...updateMonedaDto,
-        codigo: updateMonedaDto.codigo?.trim().toUpperCase(),
-        nombre: updateMonedaDto.nombre?.trim(),
-        simbolo: updateMonedaDto.simbolo?.trim(),
+    if (updateMonedaDto.nombre) {
+      const existingMonedaByNombre = await this.monedasRepository.findOne({
+        where: { nombre: updateMonedaDto.nombre.trim() },
       });
 
-      await queryRunner.manager.save(monedaUpdate);
-      await queryRunner.commitTransaction();
-
-      return {
-        message: 'La moneda ha sido actualizada exitosamente',
-        moneda: monedaUpdate,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException
-      ) {
-        throw error;
+      if (existingMonedaByNombre && existingMonedaByNombre.id !== id) {
+        throw new ConflictException(
+          `Ya existe una moneda con el nombre proporcionado`,
+        );
       }
-      throw new InternalServerErrorException('Error al actualizar la moneda');
-    } finally {
-      await queryRunner.release();
     }
+
+    if (updateMonedaDto.codigo) {
+      const existingMonedaByCodigo = await this.monedasRepository.findOne({
+        where: { codigo: updateMonedaDto.codigo.trim() },
+      });
+
+      if (existingMonedaByCodigo && existingMonedaByCodigo.id !== id) {
+        throw new ConflictException(
+          `Ya existe una moneda con el código proporcionado`,
+        );
+      }
+    }
+
+    const monedaUpdate = Object.assign(moneda, {
+      ...updateMonedaDto,
+      codigo: updateMonedaDto.codigo?.trim().toUpperCase(),
+      nombre: updateMonedaDto.nombre?.trim(),
+      simbolo: updateMonedaDto.simbolo?.trim(),
+    });
+
+    await this.monedasRepository.save(monedaUpdate);
+
+    return {
+      message: 'La moneda ha sido actualizada exitosamente',
+      moneda: monedaUpdate,
+    };
   }
 
   async remove(id: number): Promise<{ message: string; moneda: Moneda }> {
@@ -292,9 +275,18 @@ export class MonedasService {
         throw error;
       }
       console.error('Error en la conversión de moneda:', error);
-      throw new InternalServerErrorException(
+      throw new ConflictException(
         'Ocurrió un error al realizar la conversión de moneda',
       );
     }
+  }
+
+  private parseFloatMoneda(moneda: Moneda): Moneda {
+    return {
+      ...moneda,
+      tasaCambioBase: moneda.tasaCambioBase
+        ? parseFloat(moneda.tasaCambioBase.toString())
+        : null,
+    };
   }
 }

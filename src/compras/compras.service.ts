@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Like } from 'typeorm';
 import { Compra } from './entities/compra.entity';
@@ -173,7 +173,7 @@ export class ComprasService {
         throw error;
       }
       
-      throw new InternalServerErrorException(
+      throw new ConflictException(
         'Error al procesar la compra',
         error.message
       );
@@ -369,7 +369,7 @@ export class ComprasService {
         throw error;
       }
       
-      throw new InternalServerErrorException(
+      throw new ConflictException(
         'Error al procesar la anulación de la compra',
         error.message
       );

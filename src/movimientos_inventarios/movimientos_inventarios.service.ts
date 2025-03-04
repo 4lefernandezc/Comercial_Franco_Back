@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -119,7 +118,7 @@ export class MovimientosInventariosService {
         throw error;
       }
 
-      throw new InternalServerErrorException(
+      throw new ConflictException(
         `Error al crear movimiento de inventario: ${error.message}`,
       );
     } finally {
@@ -192,7 +191,7 @@ export class MovimientosInventariosService {
   
     if (!inventario) {
       throw new NotFoundException(
-        `Inventario no encontrado para producto ${idProducto} en sucursal ${idSucursal}`
+        `Inventario no encontrado para ese producto en esa sucursal`
       );
     }
   
@@ -548,7 +547,7 @@ export class MovimientosInventariosService {
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(
+      throw new ConflictException(
         `Error al cancelar movimiento: ${error.message}`
       );
     } finally {
