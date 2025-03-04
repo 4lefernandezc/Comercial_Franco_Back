@@ -207,9 +207,12 @@ export class ProveedoresService {
       nit: updateProveedorDto.nit?.trim(),
       direccion: updateProveedorDto.direccion?.trim(),
       correo: updateProveedorDto.correo?.trim(),
+      linkWhatsapp: updateProveedorDto.telefono
+        ? `https://wa.me/${updateProveedorDto.telefono.trim()}`
+        : proveedor.linkWhatsapp,
     });
 
-      await this.proveedoresRepository.save(proveedorUpdate);
+    await this.proveedoresRepository.save(proveedorUpdate);
 
     return {
       message: 'El proveedor ha sido actualizado exitosamente',

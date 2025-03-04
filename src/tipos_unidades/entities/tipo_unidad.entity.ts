@@ -13,10 +13,10 @@ export class TipoUnidad {
   @PrimaryGeneratedColumn('identity')
   id: number;
 
-  @Column('varchar', { length: 50, unique: true })
+  @Column('varchar', { length: 50 })
   nombre: string;
 
-  @Column('varchar', { length: 10, unique: true })
+  @Column('varchar', { length: 10 })
   abreviatura: string;
 
   @CreateDateColumn({ name: 'fecha_creacion' })

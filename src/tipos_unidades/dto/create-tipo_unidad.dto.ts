@@ -11,6 +11,7 @@ export class CreateTipoUnidadDto {
   readonly nombre: string;
 
   @ApiProperty()
+  @IsNotEmpty({ message: 'El campo abreviatura es obligatorio' })
   @IsString({ message: 'El campo abreviatura debe ser de tipo string' })
   @MaxLength(10, {
     message: 'El campo abreviatura no debe ser mayor a 10 caracteres',

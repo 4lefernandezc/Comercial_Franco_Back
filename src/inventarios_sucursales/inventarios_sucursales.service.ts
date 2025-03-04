@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateInventarioSucursalDto } from './dto/create-inventario_sucursal.dto';
@@ -16,6 +16,18 @@ export class InventariosSucursalesService {
   async create(
     createInventarioSucursalDto: CreateInventarioSucursalDto,
   ): Promise<InventarioSucursal> {
+    const { idProducto, idSucursal } = createInventarioSucursalDto;
+
+    const existingInventario = await this.inventariosRepository.findOne({
+      where: { idProducto, idSucursal },
+    });
+
+    if (existingInventario) {
+      throw new ConflictException(
+        `El producto seleccionado ya existe en la sucursal seleccionada`,
+      );
+    }
+
     const nuevoInventario = this.inventariosRepository.create(
       createInventarioSucursalDto,
     );
@@ -130,12 +142,20 @@ export class InventariosSucursalesService {
     updateInventarioSucursalDto: UpdateInventarioSucursalDto,
   ): Promise<{ message: string; inventario: InventarioSucursal }> {
     const inventario = await this.findOne(id);
-    if (updateInventarioSucursalDto.idProducto) {
-      inventario.idProducto = updateInventarioSucursalDto.idProducto;
+    const { idProducto, idSucursal } = updateInventarioSucursalDto;
+
+    if (idProducto && idSucursal) {
+      const existingInventario = await this.inventariosRepository.findOne({
+        where: { idProducto, idSucursal },
+      });
+
+      if (existingInventario && existingInventario.id !== id) {
+        throw new ConflictException(
+          `El producto seleccionado ya existe en la sucursal seleccionada`,
+        );
+      }
     }
-    if (updateInventarioSucursalDto.idSucursal) {
-      inventario.idSucursal = updateInventarioSucursalDto.idSucursal;
-    }
+
     Object.assign(inventario, updateInventarioSucursalDto);
     const updatedInventario = await this.inventariosRepository.save(inventario);
     return {

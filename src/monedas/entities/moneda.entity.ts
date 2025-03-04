@@ -15,13 +15,13 @@ export class Moneda {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true, length: 3 })
+  @Column({ length: 3 })
   @Index()
   @IsNotEmpty()
   @Length(1, 3)
   codigo: string;
 
-  @Column('varchar', { length: 50, unique: true })
+  @Column('varchar', { length: 50 })
   @IsNotEmpty()
   @Length(1, 50)
   nombre: string;
@@ -42,7 +42,6 @@ export class Moneda {
     nullable: true,
     type: 'decimal',
   })
-  @IsNumber()
   @Min(0)
   tasaCambioBase: number;
 
