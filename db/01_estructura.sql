@@ -73,7 +73,7 @@ CREATE TABLE tipos_unidades (
 CREATE TABLE clientes (
     id SERIAL PRIMARY KEY,
     documento character varying(25) NOT NULL,
-    tipo_documento character varying(25) NOT NULL,
+    tipo_documento character varying(50) NOT NULL,
     nombre character varying(100) NOT NULL,
     apellido character varying(100) NOT NULL,
     direccion character varying(255),

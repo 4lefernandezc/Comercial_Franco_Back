@@ -7,7 +7,7 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { IsNotEmpty, Length, IsBoolean, IsNumber, Min } from 'class-validator';
+import { IsNotEmpty, Length, IsBoolean, Min } from 'class-validator';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 
 @Entity('monedas')

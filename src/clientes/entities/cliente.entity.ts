@@ -17,7 +17,7 @@ export class Cliente {
   @Column('varchar', { length: 25 })
   documento: string;
 
-  @Column('varchar', { length: 25, name: 'tipo_documento' })
+  @Column('varchar', { length: 50, name: 'tipo_documento' })
   tipoDocumento: string;
 
   @Column('varchar', { length: 100 })
