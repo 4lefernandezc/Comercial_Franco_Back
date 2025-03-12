@@ -5,8 +5,8 @@ CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
     nombre character varying(50) NOT NULL,
     descripcion character varying(250),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla sucursales
@@ -17,8 +17,8 @@ CREATE TABLE sucursales (
     direccion character varying(255) NOT NULL,
     correo character varying(255),
     activo boolean DEFAULT true NOT NULL,
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla usuarios
@@ -34,8 +34,8 @@ CREATE TABLE usuarios (
     ultimo_login date NOT NULL,
     rol_id integer NOT NULL REFERENCES roles(id),
     sucursal_id integer NOT NULL REFERENCES sucursales(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla categorias
@@ -44,8 +44,8 @@ CREATE TABLE categorias (
     nombre character varying(50) NOT NULL,
     descripcion character varying(250),
     activo boolean DEFAULT true NOT NULL,
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla monedas
@@ -56,8 +56,8 @@ CREATE TABLE monedas (
     simbolo character varying(5) NOT NULL,
     es_principal boolean DEFAULT false NOT NULL,
     tasa_cambio_base numeric(10,2),
-    fecha_creacion timestamp with time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp with time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla tipos de unidades
@@ -65,8 +65,8 @@ CREATE TABLE tipos_unidades (
     id SERIAL PRIMARY KEY,
     nombre character varying(50) NOT NULL,
     abreviatura character varying(10) NOT NULL,
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla clientes
@@ -81,8 +81,8 @@ CREATE TABLE clientes (
     correo character varying(255),
     activo boolean DEFAULT true NOT NULL,
     link_whatsapp character varying(255),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla proveedores
@@ -96,8 +96,8 @@ CREATE TABLE proveedores (
     activo boolean DEFAULT true NOT NULL,
     link_whatsapp character varying(255),
     id_moneda integer NOT NULL REFERENCES monedas(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla productos
@@ -114,8 +114,8 @@ CREATE TABLE productos (
     activo boolean NOT NULL,
     id_categoria integer NOT NULL REFERENCES categorias(id),
     id_proveedor integer NOT NULL REFERENCES proveedores(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla cajas
@@ -125,14 +125,14 @@ CREATE TABLE cajas (
     monto_final numeric(10,2),
     total_ingresos numeric(10,2) DEFAULT '0'::numeric NOT NULL,
     total_egresos numeric(10,2) DEFAULT '0'::numeric NOT NULL,
-    fecha_apertura timestamp without time zone NOT NULL,
-    fecha_cierre timestamp without time zone,
+    fecha_apertura timestamp with time zone NOT NULL,
+    fecha_cierre timestamp with time zone,
     estado character varying(20) DEFAULT 'abierta'::character varying NOT NULL,
     usuario_apertura_id integer REFERENCES usuarios(id),
     usuario_cierre_id integer REFERENCES usuarios(id),
     sucursal_id integer REFERENCES sucursales(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla inventarios_sucursal
@@ -145,8 +145,8 @@ CREATE TABLE inventarios_sucursales (
     stock_maximo numeric(10,2),
     tipo_unidad_id integer NOT NULL REFERENCES tipos_unidades(id),
     se_vende_fraccion boolean DEFAULT false NOT NULL,
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla movimientos_inventarios
@@ -161,8 +161,8 @@ CREATE TABLE movimientos_inventarios (
     estado character varying(20) DEFAULT 'REALIZADO'::character varying NOT NULL,
     id_usuario integer NOT NULL REFERENCES usuarios(id),
     id_sucursal_destino integer REFERENCES sucursales(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla ventas
@@ -175,15 +175,15 @@ CREATE TABLE ventas (
     estado character varying(20) DEFAULT 'completada'::character varying NOT NULL,
     monto_pagado numeric(10,2),
     cambio numeric(10,2),
-    fecha_anulacion timestamp without time zone,
+    fecha_anulacion timestamp with time zone,
     nombre_cliente character varying(200),
     documento_cliente character varying(25),
     usuario_id integer REFERENCES usuarios(id),
     sucursal_id integer REFERENCES sucursales(id),
     cliente_id integer REFERENCES clientes(id),
     caja_id integer REFERENCES cajas(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla detalle_ventas
@@ -195,7 +195,7 @@ CREATE TABLE detalle_ventas (
     subtotal numeric(10,2) NOT NULL,
     venta_id integer REFERENCES ventas(id),
     producto_id integer REFERENCES productos(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla compras
@@ -206,13 +206,13 @@ CREATE TABLE compras (
     total_compra numeric(10,2) NOT NULL,
     metodo_pago character varying(50) DEFAULT 'efectivo'::character varying NOT NULL,
     estado character varying(20) DEFAULT 'completada'::character varying NOT NULL,
-    fecha_anulacion timestamp without time zone,
+    fecha_anulacion timestamp with time zone,
     "usuarioId" integer REFERENCES usuarios(id),
     "sucursalId" integer REFERENCES sucursales(id),
     "proveedorId" integer NOT NULL REFERENCES proveedores(id),
     "cajaId" integer REFERENCES cajas(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla detalle_compras
@@ -224,7 +224,7 @@ CREATE TABLE detalle_compras (
     subtotal numeric(10,2) NOT NULL,
     compra_id integer REFERENCES compras(id),
     producto_id integer REFERENCES productos(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla cotizacion
@@ -237,12 +237,12 @@ CREATE TABLE cotizaciones (
     estado character varying(20) DEFAULT 'completada'::character varying NOT NULL,
     nombre_cliente character varying(200),
     documento_cliente character varying(25),
-    fecha_anulacion timestamp without time zone,
+    fecha_anulacion timestamp with time zone,
     usuario_id integer REFERENCES usuarios(id),
     sucursal_id integer REFERENCES sucursales(id),
     cliente_id integer REFERENCES clientes(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL,
-    fecha_modificacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL,
+    fecha_modificacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
 
 -- Crear tabla detalle_cotizacion
@@ -254,5 +254,5 @@ CREATE TABLE detalle_cotizaciones (
     subtotal numeric(10,2) NOT NULL,
     producto_id integer REFERENCES productos(id),
     cotizacion_id integer REFERENCES cotizaciones(id),
-    fecha_creacion timestamp without time zone DEFAULT now() NOT NULL
+    fecha_creacion timestamp with time zone DEFAULT (now() AT TIME ZONE 'America/La_Paz') NOT NULL
 );
