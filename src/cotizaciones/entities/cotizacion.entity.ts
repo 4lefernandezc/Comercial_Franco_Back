@@ -42,13 +42,13 @@ export class Cotizacion {
   @Column({ name: 'documento_cliente', type: 'varchar', nullable: true, default: null })
   documento?: string;
 
-  @Column({ name: 'fecha_anulacion', type: 'timestamp', nullable: true })
+  @Column({ name: 'fecha_anulacion', type: 'timestamptz', nullable: true, default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaAnulacion: Date;
 
-  @CreateDateColumn({ name: 'fecha_creacion' })
+  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaCreacion: Date;
 
-  @UpdateDateColumn({ name: 'fecha_modificacion' })
+  @UpdateDateColumn({ name: 'fecha_modificacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'", onUpdate: "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaModificacion: Date;
 
   @ManyToOne(() => Usuario, (usuario) => usuario.cotizacion)

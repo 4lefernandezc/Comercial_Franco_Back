@@ -47,10 +47,10 @@ export class Caja {
   })
   totalEgresos: number;
 
-  @Column({ name: 'fecha_apertura', type: 'timestamp' })
+  @Column({ name: 'fecha_apertura', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaApertura: Date;
 
-  @Column({ name: 'fecha_cierre', type: 'timestamp', nullable: true })
+  @Column({ name: 'fecha_cierre', type: 'timestamptz', nullable: true, default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaCierre: Date;
 
   @Column({
@@ -61,10 +61,10 @@ export class Caja {
   })
   estado: string;
 
-  @CreateDateColumn({ name: 'fecha_creacion' })
+  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaCreacion: Date;
 
-  @UpdateDateColumn({ name: 'fecha_modificacion' })
+  @UpdateDateColumn({ name: 'fecha_modificacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaModificacion: Date;
 
   @ManyToOne(() => Usuario, (usuario) => usuario.cajasApertura)

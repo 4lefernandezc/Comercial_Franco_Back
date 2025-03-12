@@ -45,7 +45,7 @@ export class Usuario {
   @Column('boolean', { default: true })
   activo: boolean;
 
-  @Column({ name: 'ultimo_login', type: 'date' })
+  @Column({ name: 'ultimo_login', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   ultimoLogin: Date;
 
   @Column('number', { name: 'rol_id' })
@@ -54,10 +54,10 @@ export class Usuario {
   @Column('number', { name: 'sucursal_id' })
   sucursalId: number;
 
-  @CreateDateColumn({ name: 'fecha_creacion' })
+  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaCreacion: Date;
 
-  @UpdateDateColumn({ name: 'fecha_modificacion' })
+  @UpdateDateColumn({ name: 'fecha_modificacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'", onUpdate: "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaModificacion: Date;
 
   @ManyToOne(() => Rol, (rol) => rol.usuarios, { eager: true, nullable: false })

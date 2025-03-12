@@ -45,16 +45,10 @@ export class Moneda {
   @Min(0)
   tasaCambioBase: number;
 
-  @CreateDateColumn({
-    name: 'fecha_creacion',
-    type: 'timestamp with time zone',
-  })
+  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaCreacion: Date;
 
-  @UpdateDateColumn({
-    name: 'fecha_modificacion',
-    type: 'timestamp with time zone',
-  })
+  @UpdateDateColumn({ name: 'fecha_modificacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'", onUpdate: "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaModificacion: Date;
 
   @OneToMany(() => Proveedor, (proveedor) => proveedor.moneda)

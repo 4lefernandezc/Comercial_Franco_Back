@@ -25,7 +25,7 @@ export class DetalleCompra {
   @Column({ type: 'numeric', precision: 10, scale: 2, nullable: false })
   subtotal: number;
 
-  @CreateDateColumn({ name: 'fecha_creacion' })
+  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamptz', default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz'" })
   fechaCreacion: Date;
 
   @ManyToOne(() => Compra, (compra) => compra.detalles)
