@@ -46,6 +46,11 @@ export class CreateVentaDto {
   @IsOptional()
   montoPagado: number;
 
+  @ApiProperty({ description: 'Descuento aplicado a la venta total', example: 10.0, nullable: true })
+  @IsNumber()
+  @IsOptional()
+  descuentoTotal?: number;
+
   @ApiProperty({
     description: 'Detalles de los productos vendidos',
     type: [DetalleVentaDto],

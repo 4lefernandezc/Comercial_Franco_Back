@@ -25,7 +25,7 @@ export class VentasService {
 
   async crearVenta(createVentaDto: CreateVentaDto): Promise<Venta> {
     console.log('Iniciando creación de venta con DTO:', createVentaDto);
-    const { idSucursal } = createVentaDto;
+    const { idSucursal, descuentoTotal } = createVentaDto;
     const cajaActual = await this.cajaRepository.findOne({
       where: {
         sucursal: { id: idSucursal },
@@ -105,11 +105,11 @@ export class VentasService {
             const inventario = await queryRunner.manager.findOne(
               InventarioSucursal,
               {
-          where: {
-            idProducto: detalle.idProducto,
-            idSucursal: idSucursal,
-          },
-          relations: ['producto'],
+                where: {
+                  idProducto: detalle.idProducto,
+                  idSucursal: idSucursal,
+                },
+                relations: ['producto'],
               },
             );
 
@@ -133,19 +133,19 @@ export class VentasService {
               const fraction = detalle.cantidad - wholeUnits;
 
               const wholeUnitsPrice =
-          wholeUnits * inventario.producto.precioVenta;
+                wholeUnits * inventario.producto.precioVenta;
               console.log(`Precio por unidades enteras (${wholeUnits}): ${wholeUnitsPrice}`);
 
               const bulkQuantity =
-          fraction * inventario.producto.totalPresentacion;
+                fraction * inventario.producto.totalPresentacion;
               const fractionPrice =
-          bulkQuantity * inventario.producto.precioAgranel;
+                bulkQuantity * inventario.producto.precioAgranel;
               console.log(`Precio por fracción (${bulkQuantity}): ${fractionPrice}`);
 
               subtotalDetalle = wholeUnitsPrice + fractionPrice;
             } else {
               subtotalDetalle =
-          inventario.producto.precioVenta * detalle.cantidad;
+                inventario.producto.precioVenta * detalle.cantidad;
             }
 
             subtotalDetalle -= detalle.descuento || 0;
@@ -159,23 +159,39 @@ export class VentasService {
           }),
         );
 
-        if (montoPagado < subtotalVenta) {
+        // Aplicar descuento total a la venta si existe
+        let totalVenta = subtotalVenta;
+        if (descuentoTotal && descuentoTotal > 0) {
+          console.log(`Aplicando descuento total de ${descuentoTotal} al subtotal de ${subtotalVenta}`);
+          totalVenta = Number((subtotalVenta - descuentoTotal).toFixed(2));
+          
+          // Prevenir montos negativos
+          if (totalVenta < 0) {
+            console.error(`El descuento (${descuentoTotal}) es mayor que el subtotal (${subtotalVenta})`);
+            throw new ConflictException(
+              `El descuento total no puede ser mayor que el subtotal de la venta`,
+            );
+          }
+        }
+
+        if (montoPagado < totalVenta) {
           console.error(
-            `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`,
+            `El monto pagado (${montoPagado}) no cubre el total de la venta (${totalVenta})`,
           );
           throw new ConflictException(
-            `El monto pagado (${montoPagado}) no cubre el total de la venta (${subtotalVenta})`,
+            `El monto pagado (${montoPagado}) no cubre el total de la venta (${totalVenta})`,
           );
         }
 
-        const cambio = montoPagado - subtotalVenta;
+        const cambio = montoPagado - totalVenta;
         const numeroDocumento =
           await this.generarNumeroDocumento(tipoDocumento);
 
         const venta = queryRunner.manager.create(Venta, {
           numeroDocumento: numeroDocumento,
           subtotal: subtotalVenta,
-          totalVenta: subtotalVenta,
+          descuentoTotal: descuentoTotal || 0,
+          totalVenta: totalVenta,
           metodoPago: createVentaDto.metodoPago,
           estado: 'completada',
           caja: cajaActual,
@@ -263,6 +279,7 @@ export class VentasService {
       numeroDocumento,
       metodoPago,
       totalVenta,
+      descuentoTotal,
       estado,
       sidx,
       sord,
@@ -276,6 +293,7 @@ export class VentasService {
         'ventas.totalVenta',
         'ventas.metodoPago',
         'ventas.montoPagado',
+        'ventas.descuentoTotal',
         'ventas.cambio',
         'ventas.estado',
         'ventas.fechaCreacion',
@@ -303,6 +321,12 @@ export class VentasService {
     if (totalVenta) {
       query.andWhere('ventas.totalVenta = :totalVenta', {
         totalVenta,
+      });
+    }
+
+    if (descuentoTotal) {
+      query.andWhere('ventas.descuentoTotal = :descuentoTotal', {
+        descuentoTotal,
       });
     }
 
@@ -450,6 +474,9 @@ export class VentasService {
         ? parseFloat(venta.montoPagado.toString())
         : null,
       cambio: venta.cambio ? parseFloat(venta.cambio.toString()) : null,
+      descuentoTotal: venta.descuentoTotal
+        ? parseFloat(venta.descuentoTotal.toString())
+        : null,
     };
 
     if (venta.detalles && Array.isArray(venta.detalles)) {

@@ -47,6 +47,9 @@ export class Venta {
   @Column({ name: 'monto_pagado', type: 'numeric', precision: 10, scale: 2, nullable: true })
   montoPagado: number;
 
+  @Column({ name: 'descuento_total', type: 'numeric', precision: 10, scale: 2, nullable: true})
+  descuentoTotal: number;
+
   @Column({ name: 'cambio', type: 'numeric', precision: 10, scale: 2, nullable: true })
   cambio: number;
 

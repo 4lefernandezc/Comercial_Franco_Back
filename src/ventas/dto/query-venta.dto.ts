@@ -17,6 +17,10 @@ export class QueryVentaDto extends GetPaginationSortParamsDto {
   @IsOptional()
   readonly totalVenta?: number;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  readonly descuentoTotal?: number;
+
   @ApiPropertyOptional({ example: 'completada' })
   @IsOptional()
   @IsString()
