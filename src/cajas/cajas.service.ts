@@ -344,9 +344,15 @@ export class CajasService {
       where: {
         caja: { id: idCaja },
       },
-      relations: ['detalles'],
+      relations: ['detalles', 'detalles.producto'],
     });
-    return ventas;
+    return ventas.map(venta => ({
+      ...venta,
+      detalles: venta.detalles.map(detalle => ({
+        ...detalle,
+        producto: detalle.producto,
+      })),
+    }));
   }
 
   async obtenerComprasCaja(idCaja: number) {
@@ -354,25 +360,20 @@ export class CajasService {
       where: {
         caja: { id: idCaja },
       },
-      relations: ['detalles'],
+      relations: ['detalles', 'detalles.producto'],
     });
-    return compras;
+    return compras.map(compra => ({
+      ...compra,
+      detalles: compra.detalles.map(detalle => ({
+        ...detalle,
+        producto: detalle.producto,
+      })),
+    }));
   }
 
   async obtenerMovimientosCaja(idCaja: number) {
-    const ventas = await this.ventaRepository.find({
-      where: {
-        caja: { id: idCaja },
-      },
-      relations: ['detalles'],
-    });
-
-    const compras = await this.compraRepository.find({
-      where: {
-        caja: { id: idCaja },
-      },
-      relations: ['detalles'],
-    });
+    const ventas = await this.obtenerVentasCaja(idCaja);
+    const compras = await this.obtenerComprasCaja(idCaja);
 
     return { ventas, compras };
   }
