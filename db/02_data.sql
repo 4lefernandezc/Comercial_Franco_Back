@@ -27,17 +27,18 @@ INSERT INTO sucursales ("nombre", "direccion", "telefono", "correo", "activo") V
 ('Sucursal Montaña', 'Calle Montaña 707', '789012345', 'montaña@sistema.com', true);
 
 -- Poblar la tabla usuarios (10)
+-- Contraseña = password123 para todos los usuarios
 INSERT INTO usuarios ("usuario", "nombre", "apellido", "correo", "telefono", "clave", "activo", "ultimo_login", "rol_id", "sucursal_id") VALUES
-('jperez', 'Juan', 'Pérez', 'juan.perez@sistema.com', '555123456', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 1, 1),
-('mlopez', 'María', 'López', 'maria.lopez@sistema.com', '555987654', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 2, 1),
-('cmartinez', 'Carlos', 'Martínez', 'carlos.martinez@sistema.com', '555567123', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 3, 2),
-('agomez', 'Ana', 'Gómez', 'ana.gomez@sistema.com', '555345678', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 2, 3),
-('prodriguez', 'Pedro', 'Rodríguez', 'pedro.rodriguez@sistema.com', '555234567', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 4, 4),
-('lfernandez', 'Laura', 'Fernández', 'laura.fernandez@sistema.com', '555678901', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 5, 5),
-('lgarcia', 'Luis', 'García', 'luis.garcia@sistema.com', '555890123', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 6, 6),
-('shernandez', 'Sofía', 'Hernández', 'sofia.hernandez@sistema.com', '555901234', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 7, 7),
-('dtorres', 'Diego', 'Torres', 'diego.torres@sistema.com', '555012345', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 8, 8),
-('eramirez', 'Elena', 'Ramírez', 'elena.ramirez@sistema.com', '555789012', 'password123', true, NOW() AT TIME ZONE 'America/La_Paz', 9, 9);
+('jperez', 'Juan', 'Pérez', 'juan.perez@sistema.com', '555123456', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 1, 1),
+('mlopez', 'María', 'López', 'maria.lopez@sistema.com', '555987654', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 2, 1),
+('cmartinez', 'Carlos', 'Martínez', 'carlos.martinez@sistema.com', '555567123', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 3, 2),
+('agomez', 'Ana', 'Gómez', 'ana.gomez@sistema.com', '555345678', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 2, 3),
+('prodriguez', 'Pedro', 'Rodríguez', 'pedro.rodriguez@sistema.com', '555234567', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 4, 4),
+('lfernandez', 'Laura', 'Fernández', 'laura.fernandez@sistema.com', '555678901', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 5, 5),
+('lgarcia', 'Luis', 'García', 'luis.garcia@sistema.com', '555890123', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 6, 6),
+('shernandez', 'Sofía', 'Hernández', 'sofia.hernandez@sistema.com', '555901234', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 7, 7),
+('dtorres', 'Diego', 'Torres', 'diego.torres@sistema.com', '555012345', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 8, 8),
+('eramirez', 'Elena', 'Ramírez', 'elena.ramirez@sistema.com', '555789012', '$2b$10$Be3OLWkLtOFxwoGpAzlNCez476S.ZBRH/wIkrJDih77fgABK9os5K', true, NOW() AT TIME ZONE 'America/La_Paz', 9, 9);
 
 -- Poblar la tabla categorias (10)
 INSERT INTO categorias ("nombre", "descripcion", "activo") VALUES
@@ -142,17 +143,17 @@ INSERT INTO movimientos_inventarios ("documento_referencia", "tipo_movimiento", 
 ('ENT-4', 'entrada', 5, 'Compra', 'REALIZADO', 10, NULL, 10, 10);
 
 -- Poblar la tabla ventas (10)
-INSERT INTO ventas ("numero_documento", "subtotal", "total_venta", "metodo_pago", "estado", "monto_pagado", "cambio", "fecha_anulacion", "usuario_id", "sucursal_id", "cliente_id", "caja_id", "nombre_cliente", "documento_cliente") VALUES
-('VEN-1', 100.00, 110.00, 'efectivo', 'completada', 110.00, 0.00, NULL, 1, 1, 1, 1, NULL, NULL),
-('VEN-2', 200.00, 220.00, 'tarjeta', 'completada', 220.00, 0.00, NULL, 2, 2, 2, 2, NULL, NULL),
-('VEN-3', 150.00, 165.00, 'transferencia', 'pendiente', 165.00, 0.00, NULL, 3, 3, 3, 3, NULL, NULL),
-('VEN-4', 50.00, 55.00, 'efectivo', 'anulada', 55.00, 0.00, NOW() AT TIME ZONE 'America/La_Paz', 4, 4, 4, 4, NULL, NULL),
-('VEN-5', 300.00, 330.00, 'tarjeta', 'completada', 330.00, 0.00, NULL, 5, 5, 5, 5, NULL, NULL),
-('VEN-6', 400.00, 440.00, 'transferencia', 'completada', 440.00, 0.00, NULL, 6, 6, 6, 1, NULL, NULL),
-('VEN-7', 250.00, 275.00, 'efectivo', 'completada', 275.00, 0.00, NULL, 7, 7, 7, 2, NULL, NULL),
-('VEN-8', 350.00, 385.00, 'tarjeta', 'pendiente', 385.00, 0.00, NULL, 8, 8, 8, 3, NULL, NULL),
-('VEN-9', 120.00, 132.00, 'efectivo', 'completada', 132.00, 0.00, NULL, 9, 9, 9, 4, NULL, NULL),
-('VEN-10', 80.00, 88.00, 'transferencia', 'completada', 88.00, 0.00, NULL, 10, 10, 10, 5, NULL, NULL);
+INSERT INTO ventas ("numero_documento", "subtotal", "total_venta", "metodo_pago", "estado", "monto_pagado", "cambio", "fecha_anulacion", "usuario_id", "sucursal_id", "cliente_id", "caja_id", "nombre_cliente", "documento_cliente", "descuento_total") VALUES
+('VEN-1', 100.00, 110.00, 'efectivo', 'completada', 110.00, 0.00, NULL, 1, 1, 1, 1, NULL, NULL, NULL),
+('VEN-2', 200.00, 220.00, 'tarjeta', 'completada', 220.00, 0.00, NULL, 2, 2, 2, 2, NULL, NULL, NULL),
+('VEN-3', 150.00, 165.00, 'transferencia', 'pendiente', 165.00, 0.00, NULL, 3, 3, 3, 3, NULL, NULL, NULL),
+('VEN-4', 50.00, 55.00, 'efectivo', 'anulada', 55.00, 0.00, NOW() AT TIME ZONE 'America/La_Paz', 4, 4, 4, 4, NULL, NULL, NULL),
+('VEN-5', 300.00, 330.00, 'tarjeta', 'completada', 330.00, 0.00, NULL, 5, 5, 5, 5, NULL, NULL, NULL),
+('VEN-6', 400.00, 440.00, 'transferencia', 'completada', 440.00, 0.00, NULL, 6, 6, 6, 1, NULL, NULL, NULL),
+('VEN-7', 250.00, 275.00, 'efectivo', 'completada', 275.00, 0.00, NULL, 7, 7, 7, 2, NULL, NULL, NULL),
+('VEN-8', 350.00, 385.00, 'tarjeta', 'pendiente', 385.00, 0.00, NULL, 8, 8, 8, 3, NULL, NULL, NULL),
+('VEN-9', 120.00, 132.00, 'efectivo', 'completada', 132.00, 0.00, NULL, 9, 9, 9, 4, NULL, NULL, NULL),
+('VEN-10', 80.00, 88.00, 'transferencia', 'completada', 88.00, 0.00, NULL, 10, 10, 10, 5, NULL, NULL, NULL);
 
 -- Poblar la tabla detalle_ventas (10)
 INSERT INTO detalle_ventas ("cantidad", "precio_unitario", "descuento", "subtotal", "venta_id", "producto_id") VALUES
@@ -194,17 +195,17 @@ INSERT INTO detalle_compras ("cantidad", "precio_unitario", "descuento", "subtot
 (10, 45.00, 0.00, 450.00, 10, 10);
 
 -- Poblar la tabla cotizaciones (10)
-INSERT INTO cotizaciones ("numero_documento", "subtotal", "total_venta", "metodo_pago", "estado", "usuario_id", "sucursal_id", "cliente_id", "nombre_cliente", "documento_cliente") VALUES
-('COT-1', 100.00, 110.00, 'efectivo', 'completada', 1, 1, 1, NULL, NULL),
-('COT-2', 200.00, 220.00, 'tarjeta', 'pendiente', 2, 2, 2, NULL, NULL),
-('COT-3', 150.00, 165.00, 'transferencia', 'completada', 3, 3, 3, NULL, NULL),
-('COT-4', 50.00, 55.00, 'efectivo', 'pendiente', 4, 4, 4, NULL, NULL),
-('COT-5', 300.00, 330.00, 'tarjeta', 'completada', 5, 5, 5, NULL, NULL),
-('COT-6', 400.00, 440.00, 'transferencia', 'completada', 6, 6, 6, NULL, NULL),
-('COT-7', 250.00, 275.00, 'efectivo', 'completada', 7, 7, 7, NULL, NULL),
-('COT-8', 350.00, 385.00, 'tarjeta', 'pendiente', 8, 8, 8, NULL, NULL),
-('COT-9', 120.00, 132.00, 'efectivo', 'completada', 9, 9, 9, NULL, NULL),
-('COT-10', 80.00, 88.00, 'transferencia', 'completada', 10, 10, 10, NULL, NULL);
+INSERT INTO cotizaciones ("numero_documento", "subtotal", "total_venta", "metodo_pago", "estado", "usuarioId", "sucursalId", "clienteId", "nombre_cliente", "documento_cliente") VALUES
+('COT-21', 100.00, 110.00, 'efectivo', 'completada', 1, 1, 1, NULL, NULL),
+('COT-22', 200.00, 220.00, 'tarjeta', 'pendiente', 2, 2, 2, NULL, NULL),
+('COT-23', 150.00, 165.00, 'transferencia', 'completada', 3, 3, 3, NULL, NULL),
+('COT-24', 50.00, 55.00, 'efectivo', 'pendiente', 4, 4, 4, NULL, NULL),
+('COT-25', 300.00, 330.00, 'tarjeta', 'completada', 5, 5, 5, NULL, NULL),
+('COT-26', 400.00, 440.00, 'transferencia', 'completada', 6, 6, 6, NULL, NULL),
+('COT-27', 250.00, 275.00, 'efectivo', 'completada', 7, 7, 7, NULL, NULL),
+('COT-28', 350.00, 385.00, 'tarjeta', 'pendiente', 8, 8, 8, NULL, NULL),
+('COT-29', 120.00, 132.00, 'efectivo', 'completada', 9, 9, 9, NULL, NULL),
+('COT-30', 80.00, 88.00, 'transferencia', 'completada', 10, 10, 10, NULL, NULL);
 
 -- Poblar la tabla detalle_cotizaciones (10)
 INSERT INTO detalle_cotizaciones ("cantidad", "precio_unitario", "descuento", "subtotal", "cotizacion_id", "producto_id") VALUES
