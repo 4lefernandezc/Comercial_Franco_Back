@@ -4,6 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from './entities/usuario.entity';
@@ -258,5 +259,15 @@ export class UsuariosService {
 
   async updatePassword(userId: number, hashedPassword: string): Promise<void> {
     await this.usuariosRepository.update(userId, { clave: hashedPassword });
+  }
+
+  async resetPassword(id: number): Promise<{ message: string }> {
+    await this.findOne(id);
+  
+    const hashedDefaultPassword = await bcrypt.hash(process.env.DEFAULT_PASSWORD, 10);
+  
+    await this.updatePassword(id, hashedDefaultPassword);
+  
+    return { message: 'Contraseña restablecida exitosamente' };
   }
 }
