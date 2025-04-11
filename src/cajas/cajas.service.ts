@@ -275,29 +275,45 @@ export class CajasService {
 
     // Filtro por rango de fechas
     if (fechaAperturaInicio && fechaAperturaFin) {
-      query.andWhere('cajas.fechaApertura BETWEEN :inicio AND :fin', {
+      const fechaFinExclusiva = new Date(fechaAperturaFin);
+      fechaFinExclusiva.setDate(fechaFinExclusiva.getDate() + 1);
+    
+      query.andWhere('cajas.fechaApertura >= :inicio AND cajas.fechaApertura < :fin', {
         inicio: fechaAperturaInicio,
-        fin: fechaAperturaFin,
+        fin: fechaFinExclusiva.toISOString().split('T')[0],
       });
     } else if (fechaAperturaInicio) {
       query.andWhere('cajas.fechaApertura >= :inicio', {
         inicio: fechaAperturaInicio,
       });
     } else if (fechaAperturaFin) {
-      query.andWhere('cajas.fechaApertura <= :fin', { fin: fechaAperturaFin });
+      const fechaFinExclusiva = new Date(fechaAperturaFin);
+      fechaFinExclusiva.setDate(fechaFinExclusiva.getDate() + 1);
+    
+      query.andWhere('cajas.fechaApertura < :fin', {
+        fin: fechaFinExclusiva.toISOString().split('T')[0],
+      });
     }
 
     if (fechaCierreInicio && fechaCierreFin) {
-      query.andWhere('cajas.fechaCierre BETWEEN :inicio AND :fin', {
+      const fechaFinExclusiva = new Date(fechaCierreFin);
+      fechaFinExclusiva.setDate(fechaFinExclusiva.getDate() + 1); 
+    
+      query.andWhere('cajas.fechaCierre >= :inicio AND cajas.fechaCierre < :fin', {
         inicio: fechaCierreInicio,
-        fin: fechaCierreFin,
+        fin: fechaFinExclusiva.toISOString().split('T')[0],
       });
     } else if (fechaCierreInicio) {
       query.andWhere('cajas.fechaCierre >= :inicio', {
         inicio: fechaCierreInicio,
       });
     } else if (fechaCierreFin) {
-      query.andWhere('cajas.fechaCierre <= :fin', { fin: fechaCierreFin });
+      const fechaFinExclusiva = new Date(fechaCierreFin);
+      fechaFinExclusiva.setDate(fechaFinExclusiva.getDate() + 1);
+    
+      query.andWhere('cajas.fechaCierre < :fin', {
+        fin: fechaFinExclusiva.toISOString().split('T')[0],
+      });
     }
 
     if (estado) {
